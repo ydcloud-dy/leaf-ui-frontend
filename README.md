@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
 [![Node](https://img.shields.io/badge/Node-%3E%3D16-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 
-[在线演示](https://your-demo-site.com) · [问题反馈](https://github.com/yourusername/blog-frontend/issues) · [功能建议](https://github.com/yourusername/blog-frontend/issues/new)
+ [问题反馈](https://github.com/ydcloud-dy/leaf-ui-frontend/issues) · [功能建议](https://github.com/ydcloud-dy/blog-frontend/issues)
 
 </div>
 
