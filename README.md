@@ -521,6 +521,12 @@ docker run -e API_URL=http://your-api:8888 blog-frontend:latest
 - 配置浏览器缓存策略
 - 使用组合式函数（Composables）复用业务逻辑
 
-## 许可证
+## 📞 联系方式
 
-MIT
+如有问题或建议，请通过以下方式联系：
+
+- 提交 [Issue](https://github.com/ydcloud-dy/leaf-ui-frontend/issues)
+- 发送邮件至：dycloudlove@163.com
+- 📡：![img.png](img/wx.png)
+
+
