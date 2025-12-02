@@ -3,7 +3,7 @@ import request from './request'
 // 获取标签下的章节及文章
 export function getChaptersByTag(tag) {
   return request({
-    url: `/chapters/${tag}`,
+    url: `/blog/chapters/${tag}`,
     method: 'get'
   })
 }
@@ -11,7 +11,7 @@ export function getChaptersByTag(tag) {
 // 获取章节列表
 export function getChapters(params) {
   return request({
-    url: '/chapters',
+    url: '/blog/chapters',
     method: 'get',
     params
   })
@@ -20,7 +20,7 @@ export function getChapters(params) {
 // 创建章节
 export function createChapter(data) {
   return request({
-    url: '/chapters',
+    url: '/blog/chapters',
     method: 'post',
     data
   })
@@ -29,7 +29,7 @@ export function createChapter(data) {
 // 更新章节
 export function updateChapter(id, data) {
   return request({
-    url: `/chapters/${id}`,
+    url: `/blog/chapters/${id}`,
     method: 'put',
     data
   })
@@ -38,7 +38,7 @@ export function updateChapter(id, data) {
 // 删除章节
 export function deleteChapter(id) {
   return request({
-    url: `/chapters/${id}`,
+    url: `/blog/chapters/${id}`,
     method: 'delete'
   })
 }

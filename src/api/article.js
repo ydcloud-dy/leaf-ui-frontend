@@ -3,7 +3,7 @@ import request from './request'
 // 获取文章列表
 export function getArticles(params) {
   return request({
-    url: '/articles',
+    url: '/blog/articles',
     method: 'get',
     params
   })
@@ -12,7 +12,7 @@ export function getArticles(params) {
 // 获取文章详情
 export function getArticleDetail(id) {
   return request({
-    url: `/articles/${id}`,
+    url: `/blog/articles/${id}`,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getArticleDetail(id) {
 // 搜索文章
 export function searchArticles(params) {
   return request({
-    url: '/articles/search',
+    url: '/blog/articles/search',
     method: 'get',
     params
   })
@@ -29,7 +29,7 @@ export function searchArticles(params) {
 // 获取归档文章
 export function getArchiveArticles(params) {
   return request({
-    url: '/articles/archive',
+    url: '/blog/articles/archive',
     method: 'get',
     params
   })
@@ -38,7 +38,7 @@ export function getArchiveArticles(params) {
 // 点赞文章
 export function likeArticle(id) {
   return request({
-    url: `/articles/${id}/like`,
+    url: `/blog/articles/${id}/like`,
     method: 'post'
   })
 }
@@ -46,7 +46,7 @@ export function likeArticle(id) {
 // 取消点赞
 export function unlikeArticle(id) {
   return request({
-    url: `/articles/${id}/like`,
+    url: `/blog/articles/${id}/like`,
     method: 'delete'
   })
 }
@@ -54,7 +54,7 @@ export function unlikeArticle(id) {
 // 收藏文章
 export function favoriteArticle(id) {
   return request({
-    url: `/articles/${id}/favorite`,
+    url: `/blog/articles/${id}/favorite`,
     method: 'post'
   })
 }
@@ -62,7 +62,7 @@ export function favoriteArticle(id) {
 // 取消收藏
 export function unfavoriteArticle(id) {
   return request({
-    url: `/articles/${id}/favorite`,
+    url: `/blog/articles/${id}/favorite`,
     method: 'delete'
   })
 }
@@ -70,7 +70,7 @@ export function unfavoriteArticle(id) {
 // 获取我的点赞列表
 export function getMyLikes(params) {
   return request({
-    url: '/user/likes',
+    url: '/blog/user/likes',
     method: 'get',
     params
   })
@@ -79,7 +79,7 @@ export function getMyLikes(params) {
 // 获取我的收藏列表
 export function getMyFavorites(params) {
   return request({
-    url: '/user/favorites',
+    url: '/blog/user/favorites',
     method: 'get',
     params
   })

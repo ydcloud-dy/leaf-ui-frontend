@@ -61,6 +61,18 @@
                 </div>
 
                 <div class="message-text">{{ message.content }}</div>
+
+                <div v-if="userStore.isAdmin" class="message-actions">
+                  <el-button
+                    text
+                    size="small"
+                    type="danger"
+                    @click="handleDelete(message)"
+                  >
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
+                </div>
               </div>
             </div>
 
@@ -87,8 +99,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getGuestbookMessages, createGuestbookMessage } from '@/api/comment'
-import { ElMessage } from 'element-plus'
+import { getGuestbookMessages, createGuestbookMessage, deleteGuestbookMessage } from '@/api/comment'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -153,6 +166,25 @@ const handleSubmit = async () => {
 const handlePageChange = () => {
   fetchMessages()
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handleDelete = async (message) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条留言吗？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    })
+
+    await deleteGuestbookMessage(message.id)
+    ElMessage.success('删除成功')
+    await fetchMessages()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete message:', error)
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 const formatDate = (date) => {

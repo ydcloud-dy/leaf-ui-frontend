@@ -381,9 +381,10 @@ const fetchLikedArticles = async () => {
   try {
     const { data } = await getMyLikes({
       page: likesPage.value,
-      page_size: likesPageSize.value
+      limit: likesPageSize.value
     })
-    likedArticles.value = data.list || []
+    // 提取Article对象
+    likedArticles.value = (data.list || []).map(item => item.article)
     likesTotal.value = data.total || 0
   } catch (error) {
     console.error('Failed to fetch liked articles:', error)
@@ -397,9 +398,10 @@ const fetchFavoritedArticles = async () => {
   try {
     const { data } = await getMyFavorites({
       page: favoritesPage.value,
-      page_size: favoritesPageSize.value
+      limit: favoritesPageSize.value
     })
-    favoritedArticles.value = data.list || []
+    // 提取Article对象
+    favoritedArticles.value = (data.list || []).map(item => item.article)
     favoritesTotal.value = data.total || 0
   } catch (error) {
     console.error('Failed to fetch favorited articles:', error)

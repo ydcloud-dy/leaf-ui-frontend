@@ -3,7 +3,7 @@ import request from './request'
 // 获取评论列表
 export function getComments(params) {
   return request({
-    url: '/comments',
+    url: '/blog/comments',
     method: 'get',
     params
   })
@@ -12,7 +12,7 @@ export function getComments(params) {
 // 获取文章评论
 export function getArticleComments(articleId, params) {
   return request({
-    url: `/articles/${articleId}/comments`,
+    url: `/blog/articles/${articleId}/comments`,
     method: 'get',
     params
   })
@@ -21,7 +21,7 @@ export function getArticleComments(articleId, params) {
 // 发表评论
 export function createComment(data) {
   return request({
-    url: '/comments',
+    url: '/blog/comments',
     method: 'post',
     data
   })
@@ -30,7 +30,7 @@ export function createComment(data) {
 // 回复评论
 export function replyComment(id, data) {
   return request({
-    url: `/comments/${id}/reply`,
+    url: `/blog/comments/${id}/reply`,
     method: 'post',
     data
   })
@@ -39,7 +39,7 @@ export function replyComment(id, data) {
 // 删除评论
 export function deleteComment(id) {
   return request({
-    url: `/comments/${id}`,
+    url: `/blog/comments/${id}`,
     method: 'delete'
   })
 }
@@ -47,7 +47,7 @@ export function deleteComment(id) {
 // 点赞评论
 export function likeComment(id) {
   return request({
-    url: `/comments/${id}/like`,
+    url: `/blog/comments/${id}/like`,
     method: 'post'
   })
 }
@@ -55,7 +55,7 @@ export function likeComment(id) {
 // 取消点赞评论
 export function unlikeComment(id) {
   return request({
-    url: `/comments/${id}/like`,
+    url: `/blog/comments/${id}/like`,
     method: 'delete'
   })
 }
@@ -63,7 +63,7 @@ export function unlikeComment(id) {
 // 获取留言板消息列表
 export function getGuestbookMessages(params) {
   return request({
-    url: '/guestbook',
+    url: '/blog/guestbook',
     method: 'get',
     params
   })
@@ -72,8 +72,16 @@ export function getGuestbookMessages(params) {
 // 创建留言板消息
 export function createGuestbookMessage(data) {
   return request({
-    url: '/guestbook',
+    url: '/blog/guestbook',
     method: 'post',
     data
+  })
+}
+
+// 删除留言板消息
+export function deleteGuestbookMessage(id) {
+  return request({
+    url: `/blog/guestbook/${id}`,
+    method: 'delete'
   })
 }

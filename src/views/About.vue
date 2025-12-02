@@ -235,6 +235,7 @@ onActivated(() => {
   line-height: 1.8;
   color: #606266;
   font-size: 15px;
+  white-space: pre-wrap;
 }
 
 .skills {

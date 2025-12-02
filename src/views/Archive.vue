@@ -96,7 +96,7 @@ onMounted(() => {
 const fetchArchives = async () => {
   loading.value = true
   try {
-    const { data } = await getArchiveArticles()
+    const { data } = await getArchiveArticles({ limit: 10000 })
     archives.value = processArchiveData(data.list || [])
   } catch (error) {
     console.error('Failed to fetch archives:', error)
