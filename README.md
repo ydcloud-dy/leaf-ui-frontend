@@ -27,9 +27,11 @@ npm run dev
 > **注意**：确保后端服务已在 http://localhost:8888 启动
 
 ## 项目展示
-
-> 注意：请将实际运行的前端页面截图放置在 `screenshots/` 目录下，参考 `screenshots/README.md` 中的说明
-
+![img_4.png](img/img_4.png)
+![img.png](img/img.png)
+![img_1.png](img/img_1.png)
+![img_2.png](img/img_2.png)
+![img_3.png](img/img_3.png)
 ## 技术栈
 
 - **框架**: Vue 3 (Composition API)
