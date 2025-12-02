@@ -13,10 +13,10 @@
                 <div class="article-meta">
                   <div class="author-info">
                     <el-avatar :size="40" :src="article.author?.avatar">
-                      {{ article.author?.username?.charAt(0).toUpperCase() }}
+                      {{ (article.author?.nickname || article.author?.username)?.charAt(0).toUpperCase() }}
                     </el-avatar>
                     <div class="author-details">
-                      <div class="author-name">{{ article.author?.username || '匿名' }}</div>
+                      <div class="author-name">{{ article.author?.nickname || article.author?.username || '匿名' }}</div>
                       <div class="publish-time">{{ formatDate(article.created_at) }}</div>
                     </div>
                   </div>

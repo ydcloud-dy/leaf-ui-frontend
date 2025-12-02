@@ -41,13 +41,13 @@
       <div v-for="comment in comments" :key="comment.id" class="comment-item">
         <div class="comment-avatar">
           <el-avatar :size="40" :src="comment.user?.avatar">
-            {{ comment.user?.username?.charAt(0).toUpperCase() }}
+            {{ (comment.user?.nickname || comment.user?.username)?.charAt(0).toUpperCase() }}
           </el-avatar>
         </div>
 
         <div class="comment-content">
           <div class="comment-header">
-            <span class="username">{{ comment.user?.username || '匿名用户' }}</span>
+            <span class="username">{{ comment.user?.nickname || comment.user?.username || '匿名用户' }}</span>
             <span class="time">{{ formatDate(comment.created_at) }}</span>
           </div>
 
@@ -89,7 +89,7 @@
               v-model="replyContent"
               type="textarea"
               :rows="3"
-              :placeholder="`回复 @${comment.user?.username}...`"
+              :placeholder="`回复 @${comment.user?.nickname || comment.user?.username}...`"
               maxlength="300"
             />
             <div class="reply-actions">
@@ -109,14 +109,14 @@
           <div v-if="comment.replies?.length" class="replies">
             <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
               <el-avatar :size="32" :src="reply.user?.avatar">
-                {{ reply.user?.username?.charAt(0).toUpperCase() }}
+                {{ (reply.user?.nickname || reply.user?.username)?.charAt(0).toUpperCase() }}
               </el-avatar>
               <div class="reply-content">
                 <div class="reply-header">
-                  <span class="username">{{ reply.user?.username }}</span>
+                  <span class="username">{{ reply.user?.nickname || reply.user?.username }}</span>
                   <span v-if="reply.reply_to_user" class="reply-to">
                     <el-icon><Right /></el-icon>
-                    <span>{{ reply.reply_to_user.username }}</span>
+                    <span>{{ reply.reply_to_user.nickname || reply.reply_to_user.username }}</span>
                   </span>
                   <span class="time">{{ formatDate(reply.created_at) }}</span>
                 </div>
@@ -157,7 +157,7 @@
                     v-model="replyContent"
                     type="textarea"
                     :rows="3"
-                    :placeholder="`回复 @${reply.user?.username}...`"
+                    :placeholder="`回复 @${reply.user?.nickname || reply.user?.username}...`"
                     maxlength="300"
                   />
                   <div class="reply-actions">

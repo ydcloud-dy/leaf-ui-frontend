@@ -50,13 +50,13 @@
             <div v-for="message in messages" :key="message.id" class="message-item">
               <div class="message-avatar">
                 <el-avatar :size="50" :src="message.user?.avatar">
-                  {{ message.user?.username?.charAt(0).toUpperCase() }}
+                  {{ (message.user?.nickname || message.user?.username)?.charAt(0).toUpperCase() }}
                 </el-avatar>
               </div>
 
               <div class="message-content">
                 <div class="message-header">
-                  <span class="username">{{ message.user?.username || '匿名用户' }}</span>
+                  <span class="username">{{ message.user?.nickname || message.user?.username || '匿名用户' }}</span>
                   <span class="time">{{ formatDate(message.created_at) }}</span>
                 </div>
 
