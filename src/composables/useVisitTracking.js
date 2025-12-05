@@ -1,10 +1,9 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { recordVisitDuration } from '@/api/stats'
 
 /**
  * 访问追踪服务 - 记录页面停留时长
- * 用于统计平均访问时长和24小时PV
+ * 用于统计平均访问时长
  */
 export function useVisitTracking() {
   const router = useRouter()
@@ -12,28 +11,14 @@ export function useVisitTracking() {
   let currentPath = ''
   let isReady = false
 
-  // 记录页面访问（进入时立即记录，duration=0）
-  const recordPageEnter = async (path) => {
-    if (!path) return
-
-    try {
-      await recordVisitDuration({
-        path: path,
-        duration: 0
-      })
-    } catch (error) {
-      console.warn('Failed to record page enter:', error)
-    }
-  }
-
   // 记录页面访问时长（离开时记录实际时长）
   const recordVisit = () => {
     if (!startTime || !currentPath) return
 
     const duration = Math.floor((Date.now() - startTime) / 1000)
 
-    // 只记录停留时间超过 3 秒的访问
-    if (duration < 3) return
+    // 只记录停留时间超过 1 秒的访问（避免记录无效访问）
+    if (duration < 1) return
 
     const data = {
       path: currentPath,
@@ -56,7 +41,6 @@ export function useVisitTracking() {
   const startTracking = (path) => {
     currentPath = path
     startTime = Date.now()
-    recordPageEnter(path)
   }
 
   // 监听页面可见性变化
