@@ -1,4 +1,5 @@
 import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { sendHeartbeat as sendHeartbeatAPI } from '@/api/stats'
 
 /**
@@ -6,12 +7,15 @@ import { sendHeartbeat as sendHeartbeatAPI } from '@/api/stats'
  * 每 30 秒发送一次心跳，Redis 会记录在线状态
  */
 export function useHeartbeat() {
+  const router = useRouter()
   let heartbeatTimer = null
 
   // 发送心跳请求
   const sendHeartbeat = async () => {
     try {
-      await sendHeartbeatAPI()
+      // 获取当前页面路径
+      const currentPath = router.currentRoute.value.path
+      await sendHeartbeatAPI({ path: currentPath })
     } catch (error) {
       console.warn('Heartbeat failed:', error)
     }

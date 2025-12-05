@@ -11,8 +11,8 @@ export const getHotArticles = () => {
 }
 
 // 发送心跳（保持在线状态）
-export const sendHeartbeat = () => {
-  return request.post('/blog/heartbeat')
+export const sendHeartbeat = (data) => {
+  return request.post('/blog/heartbeat', data)
 }
 
 // 记录访问时长
