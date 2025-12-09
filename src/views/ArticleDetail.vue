@@ -115,11 +115,14 @@ import python from 'highlight.js/lib/languages/python'
 import go from 'highlight.js/lib/languages/go'
 import java from 'highlight.js/lib/languages/java'
 import cpp from 'highlight.js/lib/languages/cpp'
+import c from 'highlight.js/lib/languages/c'
+import csharp from 'highlight.js/lib/languages/csharp'
 import bash from 'highlight.js/lib/languages/bash'
 import sql from 'highlight.js/lib/languages/sql'
 import json from 'highlight.js/lib/languages/json'
 import xml from 'highlight.js/lib/languages/xml'
 import css from 'highlight.js/lib/languages/css'
+import scss from 'highlight.js/lib/languages/scss'
 import typescript from 'highlight.js/lib/languages/typescript'
 import yaml from 'highlight.js/lib/languages/yaml'
 import nginx from 'highlight.js/lib/languages/nginx'
@@ -128,38 +131,78 @@ import rust from 'highlight.js/lib/languages/rust'
 import php from 'highlight.js/lib/languages/php'
 import ruby from 'highlight.js/lib/languages/ruby'
 import docker from 'highlight.js/lib/languages/dockerfile'
+import kotlin from 'highlight.js/lib/languages/kotlin'
+import swift from 'highlight.js/lib/languages/swift'
+import scala from 'highlight.js/lib/languages/scala'
+import r from 'highlight.js/lib/languages/r'
+import perl from 'highlight.js/lib/languages/perl'
+import lua from 'highlight.js/lib/languages/lua'
+import vim from 'highlight.js/lib/languages/vim'
+import ini from 'highlight.js/lib/languages/ini'
+import makefile from 'highlight.js/lib/languages/makefile'
+import powershell from 'highlight.js/lib/languages/powershell'
+import diff from 'highlight.js/lib/languages/diff'
+import properties from 'highlight.js/lib/languages/properties'
 import 'highlight.js/styles/atom-one-dark.css'
 import dayjs from 'dayjs'
 
 // 注册语言
 hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('js', javascript)
 hljs.registerLanguage('python', python)
+hljs.registerLanguage('py', python)
 hljs.registerLanguage('go', go)
-hljs.registerLanguage('golang', go) // go 的别名
+hljs.registerLanguage('golang', go)
 hljs.registerLanguage('java', java)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('c++', cpp)
+hljs.registerLanguage('c', c)
+hljs.registerLanguage('csharp', csharp)
+hljs.registerLanguage('cs', csharp)
 hljs.registerLanguage('bash', bash)
 hljs.registerLanguage('shell', bash)
+hljs.registerLanguage('sh', bash)
 hljs.registerLanguage('sql', sql)
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('xml', xml)
 hljs.registerLanguage('html', xml)
 hljs.registerLanguage('css', css)
+hljs.registerLanguage('scss', scss)
+hljs.registerLanguage('sass', scss)
 hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('ts', typescript)
 hljs.registerLanguage('yaml', yaml)
-hljs.registerLanguage('yml', yaml) // yaml 的别名
+hljs.registerLanguage('yml', yaml)
 hljs.registerLanguage('nginx', nginx)
 hljs.registerLanguage('markdown', markdown)
-hljs.registerLanguage('md', markdown) // markdown 的别名
+hljs.registerLanguage('md', markdown)
 hljs.registerLanguage('rust', rust)
-hljs.registerLanguage('rs', rust) // rust 的别名
+hljs.registerLanguage('rs', rust)
 hljs.registerLanguage('php', php)
 hljs.registerLanguage('ruby', ruby)
-hljs.registerLanguage('rb', ruby) // ruby 的别名
+hljs.registerLanguage('rb', ruby)
 hljs.registerLanguage('docker', docker)
 hljs.registerLanguage('dockerfile', docker)
+hljs.registerLanguage('kotlin', kotlin)
+hljs.registerLanguage('kt', kotlin)
+hljs.registerLanguage('swift', swift)
+hljs.registerLanguage('scala', scala)
+hljs.registerLanguage('r', r)
+hljs.registerLanguage('perl', perl)
+hljs.registerLanguage('pl', perl)
+hljs.registerLanguage('lua', lua)
+hljs.registerLanguage('vim', vim)
+hljs.registerLanguage('viml', vim)
+hljs.registerLanguage('ini', ini)
+hljs.registerLanguage('toml', ini)
+hljs.registerLanguage('makefile', makefile)
+hljs.registerLanguage('make', makefile)
+hljs.registerLanguage('powershell', powershell)
+hljs.registerLanguage('ps', powershell)
+hljs.registerLanguage('ps1', powershell)
+hljs.registerLanguage('diff', diff)
+hljs.registerLanguage('patch', diff)
+hljs.registerLanguage('properties', properties)
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -741,7 +784,7 @@ const formatDate = (date) => {
 .article-content :deep(.line-number) {
   display: block;
   padding: 0 8px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 2.4;
   color: #636d83;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -757,7 +800,7 @@ const formatDate = (date) => {
   overflow-x: auto;
   flex: 1;
   line-height: 2.4;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 /* 代码块wrapper内的pre特殊处理 */
@@ -781,7 +824,7 @@ const formatDate = (date) => {
   margin: 0 !important;
   color: inherit !important;
   font-family: 'Consolas', 'Monaco', 'Courier New', 'Menlo', monospace !important;
-  font-size: 13px !important;
+  font-size: 16px !important;
   border: none !important;
   display: block;
   line-height: 2.4 !important;
