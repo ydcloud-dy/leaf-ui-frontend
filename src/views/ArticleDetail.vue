@@ -121,6 +121,13 @@ import json from 'highlight.js/lib/languages/json'
 import xml from 'highlight.js/lib/languages/xml'
 import css from 'highlight.js/lib/languages/css'
 import typescript from 'highlight.js/lib/languages/typescript'
+import yaml from 'highlight.js/lib/languages/yaml'
+import nginx from 'highlight.js/lib/languages/nginx'
+import markdown from 'highlight.js/lib/languages/markdown'
+import rust from 'highlight.js/lib/languages/rust'
+import php from 'highlight.js/lib/languages/php'
+import ruby from 'highlight.js/lib/languages/ruby'
+import docker from 'highlight.js/lib/languages/dockerfile'
 import 'highlight.js/styles/atom-one-dark.css'
 import dayjs from 'dayjs'
 
@@ -141,6 +148,18 @@ hljs.registerLanguage('html', xml)
 hljs.registerLanguage('css', css)
 hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('ts', typescript)
+hljs.registerLanguage('yaml', yaml)
+hljs.registerLanguage('yml', yaml) // yaml 的别名
+hljs.registerLanguage('nginx', nginx)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('md', markdown) // markdown 的别名
+hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('rs', rust) // rust 的别名
+hljs.registerLanguage('php', php)
+hljs.registerLanguage('ruby', ruby)
+hljs.registerLanguage('rb', ruby) // ruby 的别名
+hljs.registerLanguage('docker', docker)
+hljs.registerLanguage('dockerfile', docker)
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -723,7 +742,7 @@ const formatDate = (date) => {
   display: block;
   padding: 0 8px;
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 2.4;
   color: #636d83;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   margin: 0;
@@ -737,7 +756,7 @@ const formatDate = (date) => {
   padding: 0 12px !important;
   overflow-x: auto;
   flex: 1;
-  line-height: 1.8;
+  line-height: 2.4;
   font-size: 13px;
 }
 
@@ -745,13 +764,13 @@ const formatDate = (date) => {
 .article-content :deep(.code-block-wrapper pre) {
   padding: 0 !important;
   margin: 0 !important;
-  line-height: 1.4;
+  line-height: 2.4;
 }
 
 /* 单行代码 */
 .article-content :deep(.code-line) {
   display: block;
-  line-height: 1.8;
+  line-height: 2.4;
   margin: 0; /* 防止多余空白 */
   padding: 0;
 }
@@ -765,7 +784,7 @@ const formatDate = (date) => {
   font-size: 13px !important;
   border: none !important;
   display: block;
-  line-height: 1.8 !important;
+  line-height: 2.4 !important;
 }
 
 /* 确保 code 内部没有额外的空白 */
@@ -785,7 +804,7 @@ const formatDate = (date) => {
   margin: 0 !important;
   padding: 0 !important;
   background-color: #282c34 !important;
-  line-height: 1.8; /* 让代码行间距紧凑 */
+  line-height: 2.4; /* 让代码行间距紧凑 */
 }
 
 .article-content :deep(blockquote) {
