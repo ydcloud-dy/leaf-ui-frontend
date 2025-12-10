@@ -186,7 +186,7 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 20px;
+  font-size: 24px; /* 从20px增加到24px */
   font-weight: 600;
   color: #409eff;
   cursor: pointer;
@@ -207,7 +207,7 @@ const handleCommand = (command) => {
 .nav-link {
   color: #606266;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 18px; /* 从16px增加到18px */
   transition: color 0.3s;
   position: relative;
 }
@@ -242,7 +242,7 @@ const handleCommand = (command) => {
   gap: 4px;
   cursor: pointer;
   color: #606266;
-  font-size: 16px;
+  font-size: 18px; /* 从16px增加到18px */
   transition: color 0.3s;
   text-decoration: none;
   position: relative;
@@ -254,7 +254,7 @@ const handleCommand = (command) => {
 }
 
 .notes-link .el-icon {
-  font-size: 12px;
+  font-size: 14px; /* 从12px增加到14px */
 }
 
 .header-actions {
@@ -285,7 +285,7 @@ const handleCommand = (command) => {
 }
 
 .username {
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #606266;
 }
 

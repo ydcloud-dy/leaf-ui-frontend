@@ -155,7 +155,7 @@ const getSummary = () => {
 }
 
 .title {
-  font-size: 24px;
+  font-size: 28px; /* 从24px增加到28px */
   font-weight: 600;
   color: #303133;
   margin-bottom: 12px;
@@ -168,7 +168,7 @@ const getSummary = () => {
 }
 
 .summary {
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #606266;
   line-height: 1.8;
   margin-bottom: 16px;
@@ -203,7 +203,7 @@ const getSummary = () => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #909399;
 }
 
@@ -217,12 +217,12 @@ const getSummary = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #606266;
 }
 
 .date {
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #909399;
 }
 
@@ -238,7 +238,7 @@ const getSummary = () => {
   }
 
   .title {
-    font-size: 20px;
+    font-size: 24px; /* 响应式：从20px增加到24px */
   }
 
   .summary {

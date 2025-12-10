@@ -29,9 +29,14 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
+html {
+  font-size: 18px; /* 设置基础字体大小为18px，默认是16px */
+}
+
 body {
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
   background-color: #f5f7fa;
+  font-size: 18px; /* 基础字体大小 */
 }
 
 #app {
@@ -51,14 +56,14 @@ body {
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 38px; /* 从32px增加到38px */
   font-weight: 600;
   color: #303133;
   margin-bottom: 10px;
 }
 
 .page-subtitle {
-  font-size: 16px;
+  font-size: 20px; /* 从16px增加到20px */
   color: #909399;
 }
 </style>

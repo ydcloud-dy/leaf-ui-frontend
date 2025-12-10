@@ -695,7 +695,7 @@ const formatDate = (date) => {
 }
 
 .article-title {
-  font-size: 32px;
+  font-size: 36px; /* 从32px增加到36px */
   font-weight: 700;
   color: #303133;
   margin-bottom: 20px;
@@ -727,7 +727,7 @@ const formatDate = (date) => {
 }
 
 .publish-time {
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #909399;
 }
 
@@ -741,7 +741,7 @@ const formatDate = (date) => {
   align-items: center;
   gap: 4px;
   color: #909399;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
 }
 
 .article-tags {
@@ -751,7 +751,7 @@ const formatDate = (date) => {
 }
 
 .article-content {
-  font-size: 16px;
+  font-size: 18px; /* 从16px增加到18px */
   line-height: 1.8;
   color: #303133;
   margin-bottom: 30px;
@@ -785,15 +785,15 @@ const formatDate = (date) => {
 }
 
 .article-content :deep(h1) {
-  font-size: 28px;
+  font-size: 32px; /* 从28px增加到32px */
   margin-top: 40px;
 }
 .article-content :deep(h2) {
-  font-size: 24px;
+  font-size: 28px; /* 从24px增加到28px */
   margin-top: 36px;
 }
 .article-content :deep(h3) {
-  font-size: 20px;
+  font-size: 24px; /* 从20px增加到24px */
   margin-top: 32px;
 }
 
@@ -816,8 +816,8 @@ const formatDate = (date) => {
   background-color: #f5f7fa;
   padding: 2px 8px;
   border-radius: 3px;
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
-  font-size: 14px;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-size: 16px; /* 从14px增加到16px */
   color: #e83e8c;
   border: 1px solid #ebeef5;
 }
@@ -843,12 +843,12 @@ const formatDate = (date) => {
 }
 
 .article-content :deep(.code-lang-label) {
-  font-size: 12px;
+  font-size: 14px; /* 从12px增加到14px */
   color: #abb2bf;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
 }
 
 .article-content :deep(.code-copy-btn) {
@@ -856,14 +856,14 @@ const formatDate = (date) => {
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 14px; /* 从12px增加到14px */
   color: #abb2bf;
   background: #282c34;
   border: 1px solid #3e4451;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
 }
 
 .article-content :deep(.code-copy-btn:hover) {
@@ -905,10 +905,10 @@ const formatDate = (date) => {
 .article-content :deep(.line-number) {
   display: block;
   padding: 0 8px;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   line-height: 2.4;
   color: #636d83;
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
   margin: 0;
 }
 
@@ -921,7 +921,7 @@ const formatDate = (date) => {
   overflow-x: auto;
   flex: 1;
   line-height: 2.4;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
 }
 
 /* 代码块wrapper内的pre特殊处理 */
@@ -944,8 +944,8 @@ const formatDate = (date) => {
   padding: 0 !important;
   margin: 0 !important;
   color: inherit !important;
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
-  font-size: 14px !important;
+  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif !important;
+  font-size: 16px !important; /* 从14px增加到16px */
   border: none !important;
   display: block;
   line-height: 2.4 !important;
@@ -1050,7 +1050,7 @@ const formatDate = (date) => {
 }
 
 .toc-title {
-  font-size: 16px;
+  font-size: 18px; /* 从16px增加到18px */
   font-weight: 600;
   color: #303133;
   margin-bottom: 16px;
@@ -1066,7 +1066,7 @@ const formatDate = (date) => {
 .toc-item {
   padding: 8px 12px;
   margin: 2px 0;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
   color: #606266;
   cursor: pointer;
   border-radius: 4px;
@@ -1092,17 +1092,17 @@ const formatDate = (date) => {
 .toc-item.toc-level-1 {
   padding-left: 12px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
 }
 
 .toc-item.toc-level-2 {
   padding-left: 24px;
-  font-size: 14px;
+  font-size: 16px; /* 从14px增加到16px */
 }
 
 .toc-item.toc-level-3 {
   padding-left: 36px;
-  font-size: 13px;
+  font-size: 15px; /* 从13px增加到15px */
 }
 
 .toc-item.toc-level-4 {
