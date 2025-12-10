@@ -97,6 +97,16 @@
         </aside>
       </div>
     </div>
+
+    <!-- 图片查看器 -->
+    <el-image-viewer
+      v-if="imageViewerVisible"
+      :url-list="imageViewerList"
+      :initial-index="currentImageIndex"
+      @close="closeImageViewer"
+      :hide-on-click-modal="true"
+      :teleported="true"
+    />
   </div>
 </template>
 
@@ -106,7 +116,7 @@ import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle } from '@/api/article'
 import Comment from '@/components/Comment.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElImageViewer } from 'element-plus'
 import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js/lib/core'
@@ -214,6 +224,9 @@ const isFavorited = ref(false)
 const contentRef = ref(null)
 const tocItems = ref([])
 const activeHeading = ref('')
+const imageViewerVisible = ref(false)
+const imageViewerList = ref([])
+const currentImageIndex = ref(0)
 
 // 生成带行号的代码
 const generateCodeWithLineNumbers = (rawCode, highlighted) => {
@@ -421,6 +434,37 @@ const bindCopyEvents = () => {
   })
 }
 
+// 绑定图片点击事件
+const bindImageEvents = () => {
+  nextTick(() => {
+    if (!contentRef.value) return
+
+    // 获取文章内容中的所有图片
+    const images = contentRef.value.querySelectorAll('img')
+    const imageUrls = []
+
+    images.forEach((img, index) => {
+      const src = img.getAttribute('src')
+      if (src) {
+        imageUrls.push(src)
+
+        // 添加点击事件
+        img.style.cursor = 'pointer'
+        img.onclick = () => {
+          currentImageIndex.value = index
+          imageViewerList.value = imageUrls
+          imageViewerVisible.value = true
+        }
+      }
+    })
+  })
+}
+
+// 关闭图片查看器
+const closeImageViewer = () => {
+  imageViewerVisible.value = false
+}
+
 // 提取文章大纲
 const extractTOC = () => {
   if (!contentRef.value) return
@@ -488,6 +532,7 @@ const fetchArticle = async () => {
     await nextTick()
     extractTOC()
     bindCopyEvents()
+    bindImageEvents()
   } catch (error) {
     console.error('Failed to fetch article:', error)
     ElMessage.error('文章加载失败')
@@ -865,6 +910,13 @@ const formatDate = (date) => {
   border-radius: 4px;
   margin: 16px 0;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.article-content :deep(img:hover) {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
 }
 
 .article-content :deep(ul),
