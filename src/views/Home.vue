@@ -352,12 +352,61 @@ const handleTagClick = (tag) => {
     position: static;
   }
 
+  .banner {
+    height: 300px;
+    padding: 40px 0;
+    background-attachment: scroll;
+  }
+
   .banner-title {
     font-size: 32px;
+    margin-top: 40px;
   }
 
   .banner-subtitle {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner {
+    height: 250px;
+    padding: 30px 0;
+  }
+
+  .banner-title {
+    font-size: 28px;
+    margin-top: 30px;
+  }
+
+  .banner-subtitle {
+    font-size: 14px;
+  }
+
+  .pagination :deep(.el-pagination) {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pagination :deep(.el-pager) {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    height: 200px;
+    padding: 20px 0;
+  }
+
+  .banner-title {
+    font-size: 24px;
+    margin-top: 20px;
+  }
+
+  .banner-subtitle {
+    font-size: 13px;
   }
 }
 </style>

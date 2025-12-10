@@ -7,9 +7,17 @@
           <span>个人博客</span>
         </div>
 
-        <nav class="nav">
-          <router-link to="/" class="nav-link" exact>首页</router-link>
-          <router-link to="/articles" class="nav-link">文章</router-link>
+        <!-- 移动端菜单按钮 -->
+        <el-button
+          class="mobile-menu-btn"
+          :icon="mobileMenuOpen ? 'Close' : 'Menu'"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          text
+        />
+
+        <nav class="nav" :class="{ 'mobile-open': mobileMenuOpen }">
+          <router-link to="/" class="nav-link" exact @click="mobileMenuOpen = false">首页</router-link>
+          <router-link to="/articles" class="nav-link" @click="mobileMenuOpen = false">文章</router-link>
 
           <!-- 笔记下拉菜单 -->
           <el-dropdown @command="handleNoteCommand" class="notes-dropdown">
@@ -33,10 +41,10 @@
             </template>
           </el-dropdown>
 
-          <router-link to="/archive" class="nav-link">归档</router-link>
-          <router-link to="/guestbook" class="nav-link">留言板</router-link>
-          <router-link to="/stats" class="nav-link">统计</router-link>
-          <router-link to="/about" class="nav-link">关于</router-link>
+          <router-link to="/archive" class="nav-link" @click="mobileMenuOpen = false">归档</router-link>
+          <router-link to="/guestbook" class="nav-link" @click="mobileMenuOpen = false">留言板</router-link>
+          <router-link to="/stats" class="nav-link" @click="mobileMenuOpen = false">统计</router-link>
+          <router-link to="/about" class="nav-link" @click="mobileMenuOpen = false">关于</router-link>
         </nav>
 
         <div class="header-actions">
@@ -77,7 +85,7 @@
             </el-dropdown>
           </div>
 
-          <el-button v-else type="primary" @click="router.push('/login')">
+          <el-button v-else type="primary" @click="router.push('/login')" class="login-btn">
             登录
           </el-button>
         </div>
@@ -98,6 +106,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const searchKeyword = ref('')
 const tags = ref([])
+const mobileMenuOpen = ref(false)
 let searchTimer = null
 
 onMounted(() => {
@@ -137,6 +146,8 @@ const handleSearch = () => {
 }
 
 const handleNoteCommand = (tagName) => {
+  // 关闭移动端菜单
+  mobileMenuOpen.value = false
   // 跳转到笔记页面,传递标签名称
   router.push({
     name: 'Notes',
@@ -278,13 +289,95 @@ const handleCommand = (command) => {
   color: #606266;
 }
 
-@media (max-width: 768px) {
-  .nav {
-    display: none;
+.mobile-menu-btn {
+  display: none;
+  font-size: 24px;
+}
+
+@media (max-width: 968px) {
+  .header-actions {
+    gap: 10px;
   }
 
   .search-input {
-    width: 150px;
+    width: 140px;
+  }
+
+  .username {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    order: 2;
+  }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: 20px;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 999;
+  }
+
+  .nav.mobile-open {
+    display: flex;
+  }
+
+  .nav-link {
+    padding: 8px 0;
+    font-size: 16px;
+  }
+
+  .nav-link.router-link-active::after {
+    display: none;
+  }
+
+  .header-content {
+    position: relative;
+  }
+
+  .logo {
+    order: 1;
+  }
+
+  .header-actions {
+    order: 3;
+  }
+
+  .search-input {
+    width: 100px;
+  }
+
+  .search-input :deep(.el-input__inner) {
+    font-size: 14px;
+  }
+
+  .login-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .user-dropdown .el-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    width: 80px;
+  }
+
+  .logo span {
+    display: none;
   }
 }
 </style>

@@ -75,6 +75,47 @@
             </template>
           </el-card>
 
+          <!-- 上一篇/下一篇导航 -->
+          <div v-if="adjacentArticles && article" class="article-navigation">
+            <div class="nav-item prev" :class="{ disabled: !adjacentArticles.prev }" @click="navigateToArticle(adjacentArticles.prev?.id)">
+              <el-icon class="nav-arrow"><ArrowLeft /></el-icon>
+              <div class="nav-content">
+                <div class="nav-label">上一篇</div>
+                <div class="nav-title">{{ adjacentArticles.prev?.title || '没有了' }}</div>
+              </div>
+            </div>
+
+            <div class="nav-center">
+              <div class="nav-meta-item">
+                <span class="meta-label">文章分类：</span>
+                <el-tag v-if="article.category" type="warning" size="small">
+                  {{ typeof article.category === 'object' ? article.category.name : article.category }}
+                </el-tag>
+                <span v-else style="color: #909399;">未分类</span>
+              </div>
+              <div class="nav-meta-item" v-if="article.tags?.length">
+                <span class="meta-label">文章标签：</span>
+                <el-tag
+                  v-for="tag in article.tags"
+                  :key="tag.id || tag"
+                  size="small"
+                  effect="plain"
+                  style="margin-right: 6px"
+                >
+                  {{ typeof tag === 'object' ? tag.name : tag }}
+                </el-tag>
+              </div>
+            </div>
+
+            <div class="nav-item next" :class="{ disabled: !adjacentArticles.next }" @click="navigateToArticle(adjacentArticles.next?.id)">
+              <div class="nav-content">
+                <div class="nav-label">下一篇</div>
+                <div class="nav-title">{{ adjacentArticles.next?.title || '没有了' }}</div>
+              </div>
+              <el-icon class="nav-arrow"><ArrowRight /></el-icon>
+            </div>
+          </div>
+
           <!-- 评论区 -->
           <Comment v-if="article" :article-id="article.id" />
         </div>
@@ -111,13 +152,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle } from '@/api/article'
+import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles } from '@/api/article'
 import Comment from '@/components/Comment.vue'
 import { ElMessage, ElImageViewer } from 'element-plus'
-import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound } from '@element-plus/icons-vue'
+import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
@@ -215,6 +256,7 @@ hljs.registerLanguage('patch', diff)
 hljs.registerLanguage('properties', properties)
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 
 const article = ref(null)
@@ -227,6 +269,7 @@ const activeHeading = ref('')
 const imageViewerVisible = ref(false)
 const imageViewerList = ref([])
 const currentImageIndex = ref(0)
+const adjacentArticles = ref(null)
 
 // 生成带行号的代码
 const generateCodeWithLineNumbers = (rawCode, highlighted) => {
@@ -516,6 +559,16 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
 })
 
+// 监听路由参数变化
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // 重新获取文章数据
+    fetchArticle()
+  }
+})
+
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
 })
@@ -533,11 +586,34 @@ const fetchArticle = async () => {
     extractTOC()
     bindCopyEvents()
     bindImageEvents()
+
+    // 获取上一篇和下一篇文章
+    fetchAdjacentArticles()
   } catch (error) {
     console.error('Failed to fetch article:', error)
     ElMessage.error('文章加载失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 获取上一篇和下一篇文章
+const fetchAdjacentArticles = async () => {
+  try {
+    const res = await getAdjacentArticles(route.params.id)
+    adjacentArticles.value = {
+      prev: res.data.prev || null,
+      next: res.data.next || null
+    }
+  } catch (error) {
+    console.error('Failed to fetch adjacent articles:', error)
+  }
+}
+
+// 导航到指定文章
+const navigateToArticle = (articleId) => {
+  if (articleId) {
+    router.push(`/articles/${articleId}`)
   }
 }
 
@@ -740,7 +816,7 @@ const formatDate = (date) => {
   background-color: #f5f7fa;
   padding: 2px 8px;
   border-radius: 3px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', 'Menlo', monospace;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
   font-size: 14px;
   color: #e83e8c;
   border: 1px solid #ebeef5;
@@ -772,7 +848,7 @@ const formatDate = (date) => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
 }
 
 .article-content :deep(.code-copy-btn) {
@@ -832,7 +908,7 @@ const formatDate = (date) => {
   font-size: 14px;
   line-height: 2.4;
   color: #636d83;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
   margin: 0;
 }
 
@@ -868,7 +944,7 @@ const formatDate = (date) => {
   padding: 0 !important;
   margin: 0 !important;
   color: inherit !important;
-  font-family: 'Consolas', 'Monaco', 'Courier New', 'Menlo', monospace !important;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
   font-size: 14px !important;
   border: none !important;
   display: block;
@@ -1062,6 +1138,154 @@ const formatDate = (date) => {
   background: #c0c4cc;
 }
 
+/* 文章导航样式 */
+.article-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 16px;
+  padding: 0;
+  margin: 40px 0 30px;
+  border-top: 1px solid #e4e7ed;
+  padding-top: 32px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  padding: 20px 24px;
+  background: #fff;
+  border: 2px solid #e4e7ed;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  max-width: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.05) 0%, rgba(103, 194, 58, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.nav-item:hover:not(.disabled)::before {
+  opacity: 1;
+}
+
+.nav-item:hover:not(.disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.15);
+  border-color: #409eff;
+}
+
+.nav-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  background: #fafafa;
+  border-color: #f0f0f0;
+}
+
+.nav-item.prev {
+  justify-content: flex-start;
+}
+
+.nav-item.next {
+  justify-content: flex-end;
+}
+
+.nav-arrow {
+  font-size: 28px;
+  color: #409eff;
+  flex-shrink: 0;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover:not(.disabled) .nav-arrow {
+  transform: scale(1.1);
+}
+
+.nav-item.prev:hover:not(.disabled) .nav-arrow {
+  transform: translateX(-4px) scale(1.1);
+}
+
+.nav-item.next:hover:not(.disabled) .nav-arrow {
+  transform: translateX(4px) scale(1.1);
+}
+
+.nav-item.disabled .nav-arrow {
+  color: #c0c4cc;
+}
+
+.nav-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  z-index: 1;
+}
+
+.nav-label {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-title {
+  font-size: 15px;
+  color: #303133;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.nav-item:hover:not(.disabled) .nav-title {
+  color: #409eff;
+}
+
+.nav-item.disabled .nav-title {
+  color: #909399;
+}
+
+.nav-center {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 2px solid #e4e7ed;
+  border-radius: 12px;
+}
+
+.nav-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.meta-label {
+  color: #606266;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 @media (max-width: 1200px) {
   .toc-sidebar {
     display: none;
@@ -1091,6 +1315,33 @@ const formatDate = (date) => {
   .article-content :deep(code) {
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  .article-navigation {
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 24px;
+  }
+
+  .nav-item {
+    max-width: 100%;
+    padding: 16px 18px;
+  }
+
+  .nav-arrow {
+    font-size: 24px;
+  }
+
+  .nav-title {
+    font-size: 14px;
+  }
+
+  .nav-center {
+    padding: 16px 18px;
+  }
+
+  .nav-meta-item {
+    flex-wrap: wrap;
   }
 }
 </style>

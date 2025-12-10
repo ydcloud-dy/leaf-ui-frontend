@@ -30,7 +30,7 @@ onMounted(() => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
   background-color: #f5f7fa;
 }
 

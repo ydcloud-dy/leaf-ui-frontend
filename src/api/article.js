@@ -84,3 +84,11 @@ export function getMyFavorites(params) {
     params
   })
 }
+
+// 获取文章的上一篇和下一篇
+export function getAdjacentArticles(id) {
+  return request({
+    url: `/blog/articles/${id}/adjacent`,
+    method: 'get'
+  })
+}
