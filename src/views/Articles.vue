@@ -6,6 +6,14 @@
         <p class="page-subtitle">探索知识的海洋</p>
       </div>
 
+      <!-- 当前选中的标签 -->
+      <div v-if="selectedTag" class="active-tag-filter">
+        <span>当前标签：</span>
+        <el-tag closable @close="clearTagFilter" type="info" size="large">
+          {{ selectedTag }}
+        </el-tag>
+      </div>
+
       <!-- 筛选和排序 -->
       <div class="filters">
         <el-input
@@ -74,17 +82,20 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const loading = ref(false)
 const searchKeyword = ref('')
+const selectedTag = ref('')
 const sortBy = ref('latest')
 let searchTimer = null
 
 onMounted(() => {
   // 从URL获取查询参数
   searchKeyword.value = route.query.keyword || ''
+  selectedTag.value = route.query.tag || ''
   fetchArticles()
 })
 
 watch(() => route.query, () => {
   searchKeyword.value = route.query.keyword || ''
+  selectedTag.value = route.query.tag || ''
   currentPage.value = 1
   fetchArticles()
 })
@@ -101,6 +112,10 @@ const fetchArticles = async () => {
 
     if (searchKeyword.value && searchKeyword.value.trim()) {
       params.keyword = searchKeyword.value.trim()
+    }
+
+    if (selectedTag.value && selectedTag.value.trim()) {
+      params.tag = selectedTag.value.trim()
     }
 
     // 如果有搜索关键词才使用searchArticles,否则使用getArticles
@@ -138,6 +153,13 @@ const handlePageChange = () => {
   fetchArticles()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+const clearTagFilter = () => {
+  router.push({
+    name: 'Articles',
+    query: {}
+  })
+}
 </script>
 
 <style scoped>
@@ -159,6 +181,22 @@ const handlePageChange = () => {
 .filter-actions {
   display: flex;
   gap: 12px;
+}
+
+.active-tag-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.active-tag-filter span {
+  font-weight: 500;
+  color: #606266;
 }
 
 .articles-list {

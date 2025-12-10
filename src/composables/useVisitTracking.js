@@ -30,7 +30,7 @@ export function useVisitTracking() {
       try {
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
         // 本地开发和生产环境都使用 /api，由 Vite 代理或 Nginx 处理
-        navigator.sendBeacon('/api/visit', blob)
+        navigator.sendBeacon('/api/blog/visit', blob)
       } catch (error) {
         console.warn('sendBeacon failed:', error)
       }
@@ -41,6 +41,22 @@ export function useVisitTracking() {
   const startTracking = (path) => {
     currentPath = path
     startTime = Date.now()
+
+    // 记录PV（页面浏览量）
+    recordPageView(path)
+  }
+
+  // 记录页面浏览量（PV）
+  const recordPageView = (path) => {
+    if (navigator.sendBeacon) {
+      try {
+        const data = { path }
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
+        navigator.sendBeacon('/api/blog/pv', blob)
+      } catch (error) {
+        console.warn('PV tracking failed:', error)
+      }
+    }
   }
 
   // 监听页面可见性变化

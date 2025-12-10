@@ -20,6 +20,11 @@ export const recordVisitDuration = (data) => {
   return request.post('/blog/visit', data)
 }
 
+// 记录页面浏览量（PV）
+export const recordPageView = (data) => {
+  return request.post('/blog/pv', data)
+}
+
 // 获取博主信息
 export const getBloggerInfo = () => {
   return request.get('/blog/blogger')
