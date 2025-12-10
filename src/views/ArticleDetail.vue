@@ -784,7 +784,7 @@ const formatDate = (date) => {
 .article-content :deep(.line-number) {
   display: block;
   padding: 0 8px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 2.4;
   color: #636d83;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -800,7 +800,7 @@ const formatDate = (date) => {
   overflow-x: auto;
   flex: 1;
   line-height: 2.4;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* 代码块wrapper内的pre特殊处理 */
@@ -824,7 +824,7 @@ const formatDate = (date) => {
   margin: 0 !important;
   color: inherit !important;
   font-family: 'Consolas', 'Monaco', 'Courier New', 'Menlo', monospace !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   border: none !important;
   display: block;
   line-height: 2.4 !important;
