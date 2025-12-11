@@ -84,19 +84,26 @@ const formatDate = (date) => {
 }
 
 const getSummary = () => {
+  let text = ''
+
   // 优先使用 summary 字段
   if (props.article.summary && props.article.summary.trim()) {
-    return props.article.summary
+    text = props.article.summary
+  } else {
+    // 然后尝试从 content_markdown 或 content 中提取
+    text = props.article.content_markdown || props.article.content || ''
   }
 
-  // 然后尝试从 content_markdown 或 content 中提取
-  const content = props.article.content_markdown || props.article.content || ''
+  if (text.trim()) {
+    // 移除所有HTML标签
+    let plainText = text.replace(/<[^>]+>/g, '')
 
-  if (content.trim()) {
-    // 移除 markdown 标记和多余空白
-    const plainText = content
-      .replace(/[#*`>\[\]()]/g, '') // 移除常见 markdown 符号
-      .replace(/\s+/g, ' ')          // 将多个空白字符替换为单个空格
+    // 移除 markdown 标记
+    plainText = plainText
+      .replace(/[#*`>\[\]()]/g, '')     // 移除常见 markdown 符号
+      .replace(/!\[.*?\]\(.*?\)/g, '')  // 移除图片链接
+      .replace(/\[.*?\]\(.*?\)/g, '')   // 移除普通链接
+      .replace(/\s+/g, ' ')             // 将多个空白字符替换为单个空格
       .trim()
 
     if (plainText.length > 200) {
