@@ -816,7 +816,7 @@ const formatDate = (date) => {
   background-color: #f5f7fa;
   padding: 2px 8px;
   border-radius: 3px;
-  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
   font-size: 16px; /* 从14px增加到16px */
   color: #e83e8c;
   border: 1px solid #ebeef5;
@@ -848,7 +848,7 @@ const formatDate = (date) => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
 }
 
 .article-content :deep(.code-copy-btn) {
@@ -863,7 +863,7 @@ const formatDate = (date) => {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
 }
 
 .article-content :deep(.code-copy-btn:hover) {
@@ -905,10 +905,10 @@ const formatDate = (date) => {
 .article-content :deep(.line-number) {
   display: block;
   padding: 0 8px;
-  font-size: 16px; /* 从14px增加到16px */
+  font-size: 15px; /* 从14px增加到16px */
   line-height: 2.4;
   color: #636d83;
-  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
   margin: 0;
 }
 
@@ -921,7 +921,7 @@ const formatDate = (date) => {
   overflow-x: auto;
   flex: 1;
   line-height: 2.4;
-  font-size: 16px; /* 从14px增加到16px */
+  font-size: 15px; /* 从14px增加到16px */
 }
 
 /* 代码块wrapper内的pre特殊处理 */
@@ -944,8 +944,8 @@ const formatDate = (date) => {
   padding: 0 !important;
   margin: 0 !important;
   color: inherit !important;
-  font-family: "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif !important;
-  font-size: 16px !important; /* 从14px增加到16px */
+  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif !important;
+  font-size: 15px !important; /* 从14px增加到16px */
   border: none !important;
   display: block;
   line-height: 2.4 !important;
