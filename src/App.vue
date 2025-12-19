@@ -23,7 +23,7 @@ onMounted(() => {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=BM+JUA&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arial+Rounded+MT+Bold:wght@400;700&display=swap');
 
 * {
   margin: 0;
@@ -36,7 +36,7 @@ html {
 }
 
 body {
-  font-family: "BM JUA", "STHeiti", "Heiti SC", "Microsoft YaHei", "SimHei", sans-serif;
+  font-family: "Arial Rounded MT Bold", "Arial", sans-serif;
   background-color: #f5f7fa;
   font-size: 18px; /* 基础字体大小 */
 }
