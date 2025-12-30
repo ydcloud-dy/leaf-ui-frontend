@@ -23,8 +23,6 @@ onMounted(() => {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Arial+Rounded+MT+Bold:wght@400;700&display=swap');
-
 * {
   margin: 0;
   padding: 0;
