@@ -527,6 +527,5 @@ docker run -e API_URL=http://your-api:8888 blog-frontend:latest
 
 - 提交 [Issue](https://github.com/ydcloud-dy/leaf-ui-frontend/issues)
 - 发送邮件至：dycloudlove@163.com
-- 📡：![img.png](img/wx.png)
 
 
