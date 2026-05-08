@@ -56,13 +56,24 @@
               </p>
             </div>
             <div class="content-actions">
+              <el-input
+                v-model="noteSearchKeyword"
+                class="note-search"
+                placeholder="搜索当前笔记"
+                clearable
+                size="small"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
               <el-button size="small" @click="expandAllChapters">全部展开</el-button>
               <el-button size="small" @click="expandedChapters = []">全部收起</el-button>
             </div>
           </div>
 
           <!-- 章节列表（支持多级目录） -->
-          <div v-for="chapter in chapters" :key="chapter.id" class="chapter-section">
+          <div v-for="chapter in displayChapters" :key="chapter.id" class="chapter-section">
             <!-- 一级章节标题 -->
             <div
               class="chapter-header"
@@ -133,7 +144,10 @@
             </div>
           </div>
 
-          <el-empty v-if="!loading && chapters.length === 0" description="该分类下暂无章节" />
+          <el-empty
+            v-if="!loading && displayChapters.length === 0"
+            :description="noteSearchKeyword ? '没有匹配的笔记' : '该分类下暂无章节'"
+          />
         </div>
 
         <div v-else class="empty-state">
@@ -149,7 +163,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getChaptersByTag } from '@/api/chapter'
 import { getTags } from '@/api/tag'
-import { Notebook, ArrowRight, ArrowDown, Document, View, Calendar } from '@element-plus/icons-vue'
+import { Notebook, ArrowRight, ArrowDown, Document, View, Calendar, Search } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -159,6 +173,7 @@ const chapters = ref([])
 const loading = ref(false)
 const currentTag = ref('')
 const expandedChapters = ref([])
+const noteSearchKeyword = ref('')
 
 // 数据缓存
 const chaptersCache = ref({})
@@ -169,6 +184,13 @@ const chapterTotal = computed(() => {
 
 const noteArticleTotal = computed(() => {
   return countArticles(chapters.value)
+})
+
+const displayChapters = computed(() => {
+  const keyword = noteSearchKeyword.value.trim().toLowerCase()
+  if (!keyword) return chapters.value
+
+  return filterChapters(chapters.value, keyword)
 })
 
 onMounted(() => {
@@ -183,7 +205,16 @@ onMounted(() => {
 watch(() => route.params.tag, (newTag) => {
   if (newTag) {
     currentTag.value = newTag
+    noteSearchKeyword.value = ''
     fetchChapters()
+  }
+})
+
+watch(noteSearchKeyword, (keyword) => {
+  if (keyword.trim()) {
+    expandedChapters.value = collectChapterIds(displayChapters.value)
+  } else {
+    expandedChapters.value = chapters.value[0] ? [chapters.value[0].id] : []
   }
 })
 
@@ -203,6 +234,7 @@ const fetchChapters = async () => {
   // 检查缓存
   if (chaptersCache.value[currentTag.value]) {
     chapters.value = chaptersCache.value[currentTag.value]
+    expandedChapters.value = chapters.value[0] ? [chapters.value[0].id] : []
     return
   }
 
@@ -214,8 +246,7 @@ const fetchChapters = async () => {
     // 缓存数据
     chaptersCache.value[currentTag.value] = chapters.value
 
-    // 不再默认展开第一个章节，让用户按需展开
-    expandedChapters.value = []
+    expandedChapters.value = chapters.value[0] ? [chapters.value[0].id] : []
   } catch (error) {
     console.error('Failed to fetch chapters:', error)
   } finally {
@@ -225,6 +256,7 @@ const fetchChapters = async () => {
 
 const selectTag = (tagName) => {
   currentTag.value = tagName
+  noteSearchKeyword.value = ''
   router.push({ name: 'Notes', params: { tag: tagName } })
   fetchChapters()
 }
@@ -257,8 +289,30 @@ const collectChapterIds = (list = []) => {
   ])
 }
 
+const filterChapters = (list = [], keyword) => {
+  return list.reduce((result, chapter) => {
+    const chapterMatched = chapter.name?.toLowerCase().includes(keyword)
+    const matchedArticles = (chapter.articles || []).filter(article => {
+      return article.title?.toLowerCase().includes(keyword)
+    })
+    const matchedSubChapters = filterChapters(chapter.sub_chapters || [], keyword)
+
+    if (chapterMatched) {
+      result.push(chapter)
+    } else if (matchedArticles.length > 0 || matchedSubChapters.length > 0) {
+      result.push({
+        ...chapter,
+        articles: matchedArticles,
+        sub_chapters: matchedSubChapters
+      })
+    }
+
+    return result
+  }, [])
+}
+
 const expandAllChapters = () => {
-  expandedChapters.value = collectChapterIds(chapters.value)
+  expandedChapters.value = collectChapterIds(displayChapters.value)
 }
 
 // 计算章节下的总文章数（包括子章节的文章）
@@ -366,7 +420,7 @@ const formatDate = (dateString) => {
   flex: 1;
   padding: 30px;
   overflow-y: auto;
-  background-color: #fbfcfe;
+  background-color: var(--leaf-surface-muted);
 }
 
 .content-heading {
@@ -396,6 +450,10 @@ const formatDate = (dateString) => {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.note-search {
+  width: 230px;
 }
 
 .chapter-section {
@@ -509,7 +567,7 @@ const formatDate = (dateString) => {
 }
 
 .sub-articles-list .article-item {
-  background-color: #fff;
+  background-color: var(--leaf-surface);
 }
 
 .article-item {
@@ -624,6 +682,15 @@ const formatDate = (dateString) => {
 
   .content-heading {
     flex-direction: column;
+  }
+
+  .content-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .note-search {
+    width: 100%;
   }
 }
 </style>

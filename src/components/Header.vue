@@ -62,6 +62,18 @@
         </nav>
 
         <div class="header-actions">
+          <el-button
+            class="theme-toggle"
+            circle
+            :title="isDark ? '切换浅色模式' : '切换暗色模式'"
+            @click="toggleTheme"
+          >
+            <el-icon>
+              <Sunny v-if="isDark" />
+              <Moon v-else />
+            </el-icon>
+          </el-button>
+
           <el-input
             v-model="searchKeyword"
             placeholder="搜索文章..."
@@ -113,8 +125,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getTags } from '@/api/tag'
+import { useTheme } from '@/composables/useTheme'
 import { ElMessage } from 'element-plus'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -122,6 +135,7 @@ const userStore = useUserStore()
 const searchKeyword = ref('')
 const tags = ref([])
 const mobileMenuOpen = ref(false)
+const { isDark, toggleTheme } = useTheme()
 let searchTimer = null
 
 onMounted(() => {
@@ -190,6 +204,12 @@ const handleCommand = (command) => {
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+
+:global(html[data-theme='dark']) .header {
+  background: rgba(32, 42, 54, 0.9);
+  border-bottom-color: var(--leaf-border);
+  box-shadow: 0 8px 22px rgba(3, 7, 18, 0.24);
 }
 
 .header-content {
@@ -282,6 +302,18 @@ const handleCommand = (command) => {
   width: 220px;
 }
 
+.theme-toggle {
+  flex: 0 0 auto;
+  color: var(--leaf-muted);
+  background: var(--leaf-surface-muted);
+  border-color: transparent;
+}
+
+.theme-toggle:hover {
+  color: var(--leaf-primary);
+  background: var(--leaf-primary-soft);
+}
+
 .search-input :deep(.el-input__wrapper) {
   background: var(--leaf-surface-muted);
   box-shadow: 0 0 0 1px transparent inset;
@@ -290,6 +322,10 @@ const handleCommand = (command) => {
 .search-input :deep(.el-input__wrapper.is-focus) {
   background: #fff;
   box-shadow: 0 0 0 1px var(--leaf-primary) inset;
+}
+
+:global(html[data-theme='dark']) .search-input :deep(.el-input__wrapper.is-focus) {
+  background: var(--leaf-surface-muted);
 }
 
 .user-info {
@@ -365,6 +401,10 @@ const handleCommand = (command) => {
     border-radius: 0 0 var(--leaf-radius) var(--leaf-radius);
     box-shadow: var(--leaf-shadow-lg);
     z-index: 999;
+  }
+
+  :global(html[data-theme='dark']) .nav {
+    background: rgba(32, 42, 54, 0.98);
   }
 
   .nav.mobile-open {

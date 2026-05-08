@@ -1,5 +1,15 @@
 <template>
-  <div class="article-detail">
+  <div
+    class="article-detail"
+    :style="{
+      '--reader-font-size': `${readerFontSize}px`,
+      '--reader-content-width': `${readerWidth}px`
+    }"
+  >
+    <div class="reading-progress">
+      <span :style="{ width: `${readingProgress}%` }"></span>
+    </div>
+
     <div class="container">
       <div class="detail-layout">
         <!-- 左侧主内容区 -->
@@ -71,6 +81,10 @@
                   <el-icon><Collection v-if="!isFavorited" /><CollectionTag v-else /></el-icon>
                   {{ isFavorited ? '已收藏' : '收藏' }} ({{ article.favorite_count || 0 }})
                 </el-button>
+                <el-button @click="copyArticleLink">
+                  <el-icon><Link /></el-icon>
+                  复制链接
+                </el-button>
               </div>
             </template>
           </el-card>
@@ -135,6 +149,32 @@
               </div>
             </nav>
           </div>
+
+          <div class="reader-tools">
+            <div class="reader-tools__header">
+              <span>阅读设置</span>
+              <strong>{{ readingProgress }}%</strong>
+            </div>
+            <div class="reader-tool-row">
+              <span>字号</span>
+              <div class="reader-stepper">
+                <button type="button" @click="adjustFontSize(-1)">A-</button>
+                <strong>{{ readerFontSize }}</strong>
+                <button type="button" @click="adjustFontSize(1)">A+</button>
+              </div>
+            </div>
+            <div class="reader-tool-row">
+              <span>宽度</span>
+              <div class="reader-stepper">
+                <button type="button" @click="adjustReaderWidth(-40)">窄</button>
+                <strong>{{ readerWidth }}</strong>
+                <button type="button" @click="adjustReaderWidth(40)">宽</button>
+              </div>
+            </div>
+            <button class="reader-reset" type="button" @click="resetReaderSettings">
+              恢复默认
+            </button>
+          </div>
         </aside>
       </div>
     </div>
@@ -156,9 +196,10 @@ import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles } from '@/api/article'
+import { addRecentArticle } from '@/composables/useRecentArticles'
 import Comment from '@/components/Comment.vue'
 import { ElMessage, ElImageViewer } from 'element-plus'
-import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound, ArrowLeft, ArrowRight, Link } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
@@ -270,6 +311,9 @@ const imageViewerVisible = ref(false)
 const imageViewerList = ref([])
 const currentImageIndex = ref(0)
 const adjacentArticles = ref(null)
+const readingProgress = ref(0)
+const readerFontSize = ref(Number(localStorage.getItem('leaf-reader-font-size')) || 17)
+const readerWidth = ref(Number(localStorage.getItem('leaf-reader-width')) || 860)
 
 // 生成带行号的代码
 const generateCodeWithLineNumbers = (rawCode, highlighted) => {
@@ -319,7 +363,17 @@ const renderCodeBlock = (rawCode, lang = '') => {
 
   const { lineNumbers, codeLines } = generateCodeWithLineNumbers(codeText, highlighted)
 
-  return `<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang-label">${displayLang}</span><button class="code-copy-btn" data-code="${encodeURIComponent(codeText)}"><svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span class="copy-text">复制代码</span></button></div><div class="code-block-body"><div class="line-numbers-wrapper">${lineNumbers}</div><pre class="hljs${lang ? ` language-${lang}` : ''}"><code>${codeLines}</code></pre></div></div>`
+  return `
+    <div class="code-block-wrapper">
+      <div class="code-block-header">
+        <span class="code-lang-label">${displayLang}</span>
+        <button class="code-copy-btn" data-code="${encodeURIComponent(codeText)}">
+          <span class="copy-text">复制代码</span>
+        </button>
+      </div>
+      <div class="line-numbers-wrapper">${lineNumbers}</div>
+      <pre class="hljs${lang ? ` language-${lang}` : ''}"><code>${codeLines}</code></pre>
+    </div>`
 }
 
 md.renderer.rules.fence = (tokens, idx) => {
@@ -496,12 +550,15 @@ const extractTOC = () => {
 const scrollToHeading = (id) => {
   const element = document.getElementById(id)
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const top = element.getBoundingClientRect().top + window.scrollY - 88
+    window.scrollTo({ top, behavior: 'smooth' })
   }
 }
 
 // 监听滚动，高亮当前所在的标题
 const handleScroll = () => {
+  updateReadingProgress()
+
   if (!contentRef.value || tocItems.value.length === 0) return
 
   const headings = contentRef.value.querySelectorAll('h1, h2, h3, h4, h5, h6')
@@ -509,12 +566,47 @@ const handleScroll = () => {
 
   headings.forEach((heading) => {
     const rect = heading.getBoundingClientRect()
-    if (rect.top <= 100) {
+    if (rect.top <= 120) {
       current = heading.id
     }
   })
 
   activeHeading.value = current
+}
+
+const updateReadingProgress = () => {
+  if (!contentRef.value) {
+    readingProgress.value = 0
+    return
+  }
+
+  const rect = contentRef.value.getBoundingClientRect()
+  const contentTop = window.scrollY + rect.top
+  const readableDistance = Math.max(contentRef.value.scrollHeight - window.innerHeight + 180, 1)
+  const scrolled = window.scrollY - contentTop + 120
+  const progress = Math.min(100, Math.max(0, Math.round((scrolled / readableDistance) * 100)))
+  readingProgress.value = progress
+}
+
+const persistReaderSettings = () => {
+  localStorage.setItem('leaf-reader-font-size', String(readerFontSize.value))
+  localStorage.setItem('leaf-reader-width', String(readerWidth.value))
+}
+
+const adjustFontSize = (delta) => {
+  readerFontSize.value = Math.min(22, Math.max(15, readerFontSize.value + delta))
+  persistReaderSettings()
+}
+
+const adjustReaderWidth = (delta) => {
+  readerWidth.value = Math.min(980, Math.max(720, readerWidth.value + delta))
+  persistReaderSettings()
+}
+
+const resetReaderSettings = () => {
+  readerFontSize.value = 17
+  readerWidth.value = 860
+  persistReaderSettings()
 }
 
 onMounted(() => {
@@ -541,6 +633,7 @@ const fetchArticle = async () => {
   try {
     const res = await getArticleDetail(route.params.id)
     article.value = res.data
+    addRecentArticle(res.data)
     isLiked.value = res.data.is_liked || false
     isFavorited.value = res.data.is_favorited || false
 
@@ -549,6 +642,7 @@ const fetchArticle = async () => {
     extractTOC()
     bindCopyEvents()
     bindImageEvents()
+    updateReadingProgress()
 
     // 获取上一篇和下一篇文章
     fetchAdjacentArticles()
@@ -623,6 +717,15 @@ const handleFavorite = async () => {
     }
   } catch (error) {
     console.error('Failed to favorite article:', error)
+  }
+}
+
+const copyArticleLink = async () => {
+  const success = await copyToClipboard(window.location.href)
+  if (success) {
+    ElMessage.success('文章链接已复制')
+  } else {
+    ElMessage.error('复制失败,请手动复制')
   }
 }
 
@@ -1313,11 +1416,37 @@ const formatDate = (date) => {
   padding: 34px 0 0;
 }
 
+.reading-progress {
+  position: fixed;
+  top: var(--leaf-header-height);
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  height: 3px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.reading-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--leaf-primary), var(--leaf-green));
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.32);
+  transition: width 0.12s ease;
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 28px;
   align-items: start;
+}
+
+.main-content {
+  width: 100%;
+  max-width: var(--reader-content-width);
+  justify-self: center;
 }
 
 .article-card {
@@ -1331,7 +1460,7 @@ const formatDate = (date) => {
   margin: 0;
   padding: 36px 40px 26px;
   border-bottom: 1px solid var(--leaf-border);
-  background: #fff;
+  background: var(--leaf-surface);
 }
 
 .article-title {
@@ -1375,8 +1504,8 @@ const formatDate = (date) => {
 .article-content {
   margin: 0;
   padding: 34px 40px 16px;
-  color: #273142;
-  font-size: 17px;
+  color: var(--leaf-text);
+  font-size: var(--reader-font-size);
   line-height: 1.86;
 }
 
@@ -1633,6 +1762,100 @@ const formatDate = (date) => {
   box-shadow: var(--leaf-shadow-sm);
 }
 
+.reader-tools {
+  position: sticky;
+  top: calc(var(--leaf-header-height) + 270px);
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: var(--leaf-surface);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.reader-tools__header,
+.reader-tool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reader-tools__header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--leaf-border);
+}
+
+.reader-tools__header span,
+.reader-tool-row span {
+  color: var(--leaf-heading);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.reader-tools__header strong {
+  color: var(--leaf-primary);
+  font-size: 13px;
+  font-weight: 820;
+}
+
+.reader-tool-row {
+  margin-bottom: 12px;
+}
+
+.reader-stepper {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--leaf-border);
+  border-radius: 7px;
+  background: var(--leaf-surface-muted);
+}
+
+.reader-stepper button {
+  height: 30px;
+  min-width: 36px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--leaf-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.reader-stepper button:hover {
+  color: var(--leaf-primary);
+  background: var(--leaf-primary-soft);
+}
+
+.reader-stepper strong {
+  min-width: 38px;
+  color: var(--leaf-heading);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.reader-reset {
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--leaf-border);
+  border-radius: 7px;
+  background: var(--leaf-surface-muted);
+  color: var(--leaf-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.reader-reset:hover {
+  color: var(--leaf-primary);
+  border-color: rgba(37, 99, 235, 0.28);
+  background: var(--leaf-primary-soft);
+}
+
 .toc-title {
   margin: 0 0 12px;
   padding-bottom: 12px;
@@ -1754,6 +1977,10 @@ const formatDate = (date) => {
     padding-top: 18px;
   }
 
+  .reading-progress {
+    top: 64px;
+  }
+
   .article-header {
     padding: 24px 20px 20px;
   }
@@ -1769,7 +1996,7 @@ const formatDate = (date) => {
 
   .article-content {
     padding: 24px 20px 10px;
-    font-size: 16px;
+    font-size: min(var(--reader-font-size), 18px);
   }
 
   .article-content :deep(h1) {
@@ -1803,39 +2030,34 @@ const formatDate = (date) => {
     padding: 8px 10px;
   }
 
-  .article-content :deep(.copy-text) {
-    display: none;
-  }
 }
 
 /* 代码块最终形态：只保留一层容器，避免 Markdown 默认 pre/code 外壳造成重复背景 */
 .article-content :deep(.code-block-wrapper) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   margin: 22px 0;
   overflow: hidden;
-  border: 1px solid #243044;
+  border: 1px solid #2f3a4c;
   border-radius: 8px;
-  background: #0f172a;
+  background: #101827;
   box-shadow: none;
 }
 
 .article-content :deep(.code-block-header) {
+  grid-column: 1 / -1;
   min-height: 44px;
   padding: 0 14px;
-  border-bottom: 1px solid #243044;
-  background: #111827;
-}
-
-.article-content :deep(.code-block-body) {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  background: #0f172a;
+  border-bottom: 1px solid #2f3a4c;
+  background: #151e2d;
 }
 
 .article-content :deep(.line-numbers-wrapper) {
+  grid-column: 1;
   min-width: 48px;
   padding: 14px 0;
-  background: #111827;
-  border-right: 1px solid #243044;
+  background: #151e2d;
+  border-right: 1px solid #2f3a4c;
 }
 
 .article-content :deep(.line-number) {
@@ -1847,10 +2069,11 @@ const formatDate = (date) => {
 
 .article-content :deep(.code-block-wrapper pre),
 .article-content :deep(.code-block-wrapper pre.hljs) {
+  grid-column: 2;
   min-width: 0;
   margin: 0 !important;
   padding: 14px 16px !important;
-  background: #0f172a !important;
+  background: #101827 !important;
   line-height: 1.85 !important;
 }
 
@@ -1867,5 +2090,50 @@ const formatDate = (date) => {
   height: 30px;
   padding: 0 10px;
   border-radius: 6px;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(.code-block-wrapper) {
+  border-color: #405066;
+  background: #172131;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(.code-block-header),
+:global(html[data-theme='dark']) .article-content :deep(.line-numbers-wrapper) {
+  border-color: #405066;
+  background: #1c2839;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(.code-block-wrapper pre),
+:global(html[data-theme='dark']) .article-content :deep(.code-block-wrapper pre.hljs) {
+  background: #172131 !important;
+}
+
+:global(html[data-theme='dark']) .article-header,
+:global(html[data-theme='dark']) .nav-item,
+:global(html[data-theme='dark']) .nav-center,
+:global(html[data-theme='dark']) .toc-wrapper,
+:global(html[data-theme='dark']) .reader-tools {
+  background: var(--leaf-surface);
+  border-color: var(--leaf-border);
+}
+
+:global(html[data-theme='dark']) .article-content {
+  color: var(--leaf-text);
+}
+
+:global(html[data-theme='dark']) .article-content :deep(p code),
+:global(html[data-theme='dark']) .article-content :deep(li code) {
+  border-color: var(--leaf-border);
+  background: rgba(96, 165, 250, 0.11);
+  color: #fca5a5;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(blockquote),
+:global(html[data-theme='dark']) .article-content :deep(table th) {
+  background: var(--leaf-surface-muted);
+}
+
+:global(html[data-theme='dark']) .nav-center {
+  background: var(--leaf-surface-muted);
 }
 </style>

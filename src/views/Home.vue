@@ -94,6 +94,40 @@
             </div>
           </section>
 
+          <!-- 最近阅读 -->
+          <section class="sidebar-panel">
+            <div class="card-header with-action">
+              <div>
+                <el-icon><Clock /></el-icon>
+                <span>最近阅读</span>
+              </div>
+              <el-button
+                v-if="recentArticles.length"
+                text
+                size="small"
+                class="panel-action"
+                @click="handleClearRecent"
+              >
+                清空
+              </el-button>
+            </div>
+            <div class="recent-list">
+              <div
+                v-for="article in recentArticles"
+                :key="article.id"
+                class="recent-item"
+                @click="router.push(`/articles/${article.id}`)"
+              >
+                <div class="recent-title">{{ article.title }}</div>
+                <div class="recent-meta">
+                  <span>{{ article.category || '未分类' }}</span>
+                  <span>{{ formatRecentTime(article.readAt) }}</span>
+                </div>
+              </div>
+              <el-empty v-if="!recentArticles.length" description="暂无阅读记录" :image-size="64" />
+            </div>
+          </section>
+
           <!-- 标签云 -->
           <section class="sidebar-panel">
             <div class="card-header">
@@ -149,7 +183,9 @@ import { useRouter } from 'vue-router'
 import { getArticles } from '@/api/article'
 import { getStats, getHotArticles } from '@/api/stats'
 import { getTags } from '@/api/tag'
+import { getRecentArticles, clearRecentArticles } from '@/composables/useRecentArticles'
 import ArticleCard from '@/components/ArticleCard.vue'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 
@@ -157,6 +193,7 @@ const articles = ref([])
 const hotArticles = ref([])
 const tags = ref([])
 const stats = ref({})
+const recentArticles = ref([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -167,6 +204,7 @@ onMounted(() => {
   fetchHotArticles()
   fetchTags()
   fetchStats()
+  recentArticles.value = getRecentArticles()
 })
 
 const fetchArticles = async () => {
@@ -239,6 +277,18 @@ const handleTagClick = (tag) => {
   })
 }
 
+const handleClearRecent = () => {
+  clearRecentArticles()
+  recentArticles.value = []
+}
+
+const formatRecentTime = (time) => {
+  if (!time) return ''
+  const readAt = dayjs(time)
+  if (dayjs().isSame(readAt, 'day')) return readAt.format('HH:mm')
+  return readAt.format('MM-DD')
+}
+
 const formatNumber = (num) => {
   const value = Number(num) || 0
   if (value >= 10000) return `${(value / 10000).toFixed(1)}w`
@@ -254,6 +304,14 @@ const formatNumber = (num) => {
   color: #fff;
   background:
     linear-gradient(90deg, rgba(13, 23, 42, 0.82) 0%, rgba(13, 23, 42, 0.62) 48%, rgba(13, 23, 42, 0.25) 100%),
+    url('../../img/wukong.png');
+  background-size: cover;
+  background-position: center;
+}
+
+:global(html[data-theme='dark']) .hero {
+  background:
+    linear-gradient(90deg, rgba(24, 32, 43, 0.78) 0%, rgba(24, 32, 43, 0.58) 52%, rgba(24, 32, 43, 0.24) 100%),
     url('../../img/wukong.png');
   background-size: cover;
   background-position: center;
@@ -329,6 +387,11 @@ const formatNumber = (num) => {
   backdrop-filter: blur(10px);
 }
 
+:global(html[data-theme='dark']) .hero-stats {
+  background: rgba(32, 42, 54, 0.58);
+  border-color: rgba(215, 222, 232, 0.2);
+}
+
 .hero-stat {
   display: flex;
   align-items: baseline;
@@ -394,6 +457,7 @@ const formatNumber = (num) => {
 .card-header {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   margin-bottom: 16px;
   color: var(--leaf-heading);
@@ -401,8 +465,22 @@ const formatNumber = (num) => {
   font-weight: 750;
 }
 
+.card-header.with-action {
+  justify-content: space-between;
+}
+
+.card-header.with-action > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .card-header .el-icon {
   color: var(--leaf-primary);
+}
+
+.panel-action {
+  padding: 0 4px;
 }
 
 .hot-articles {
@@ -451,6 +529,50 @@ const formatNumber = (num) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-item {
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--leaf-surface-muted);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.recent-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.28);
+  background: var(--leaf-primary-soft);
+}
+
+.recent-title {
+  margin-bottom: 6px;
+  color: var(--leaf-heading);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.recent-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--leaf-subtle);
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .tags-cloud {

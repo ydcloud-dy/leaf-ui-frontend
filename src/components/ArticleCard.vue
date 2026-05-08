@@ -9,9 +9,9 @@
       </div>
 
       <div class="content">
-        <h3 class="title">{{ article.title }}</h3>
+        <h3 class="title" v-html="highlightText(article.title)"></h3>
 
-        <p class="summary">{{ getSummary() }}</p>
+        <p class="summary" v-html="highlightText(getSummary())"></p>
 
         <div class="meta">
           <div class="tags">
@@ -73,6 +73,10 @@ const props = defineProps({
   article: {
     type: Object,
     required: true
+  },
+  keyword: {
+    type: String,
+    default: ''
   }
 })
 
@@ -92,6 +96,27 @@ const decodeHtml = (value) => {
   const textarea = document.createElement('textarea')
   textarea.innerHTML = value
   return textarea.value
+}
+
+const escapeHtml = (value) => {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const escapeRegExp = (value) => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const highlightText = (value) => {
+  const text = escapeHtml(value)
+  const keyword = props.keyword?.trim()
+  if (!keyword) return text
+
+  return text.replace(new RegExp(`(${escapeRegExp(escapeHtml(keyword))})`, 'gi'), '<mark class="search-mark">$1</mark>')
 }
 
 const getSummary = () => {
@@ -155,7 +180,7 @@ const getSummary = () => {
   width: 250px;
   min-height: 220px;
   overflow: hidden;
-  background: #eef2f6;
+  background: var(--leaf-surface-muted);
 }
 
 .cover-placeholder {
@@ -202,6 +227,20 @@ const getSummary = () => {
 
 .article-card:hover .title {
   color: var(--leaf-primary);
+}
+
+.title :deep(.search-mark),
+.summary :deep(.search-mark) {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+:global(html[data-theme='dark']) .title :deep(.search-mark),
+:global(html[data-theme='dark']) .summary :deep(.search-mark) {
+  background: rgba(251, 191, 36, 0.22);
+  color: #fbbf24;
 }
 
 .summary {

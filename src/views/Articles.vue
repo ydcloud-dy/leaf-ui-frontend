@@ -34,6 +34,13 @@
         </el-tag>
       </div>
 
+      <div v-if="searchKeyword" class="active-search-filter">
+        <span>搜索关键词：</span>
+        <el-tag closable @close="clearSearchFilter" type="primary" size="large">
+          {{ searchKeyword }}
+        </el-tag>
+      </div>
+
       <!-- 筛选和排序 -->
       <div class="toolbar-panel filters">
         <el-input
@@ -68,6 +75,7 @@
           v-for="article in articles"
           :key="article.id"
           :article="article"
+          :keyword="searchKeyword"
         />
 
         <el-empty v-if="!loading && !articles.length" description="暂无文章" />
@@ -169,8 +177,19 @@ const handleSearchInput = () => {
   // 设置新的定时器,300ms后执行搜索
   searchTimer = setTimeout(() => {
     currentPage.value = 1
-    fetchArticles()
+    syncSearchQuery()
   }, 300)
+}
+
+const syncSearchQuery = () => {
+  const query = { ...route.query }
+  const keyword = searchKeyword.value.trim()
+  if (keyword) {
+    query.keyword = keyword
+  } else {
+    delete query.keyword
+  }
+  router.replace({ name: 'Articles', query })
 }
 
 const handleSort = () => {
@@ -186,8 +205,16 @@ const handlePageChange = () => {
 const clearTagFilter = () => {
   router.push({
     name: 'Articles',
-    query: {}
+    query: searchKeyword.value ? { keyword: searchKeyword.value } : {}
   })
+}
+
+const clearSearchFilter = () => {
+  searchKeyword.value = ''
+  currentPage.value = 1
+  const query = { ...route.query }
+  delete query.keyword
+  router.push({ name: 'Articles', query })
 }
 </script>
 
@@ -216,11 +243,24 @@ const clearTagFilter = () => {
   margin-bottom: 20px;
   padding: 16px 20px;
   background: var(--leaf-primary-soft);
-  border: 1px solid #bfdbfe;
+  border: 1px solid rgba(37, 99, 235, 0.22);
   border-radius: var(--leaf-radius);
 }
 
-.active-tag-filter span {
+.active-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.active-tag-filter span,
+.active-search-filter span {
   color: var(--leaf-muted);
   font-weight: 650;
 }
