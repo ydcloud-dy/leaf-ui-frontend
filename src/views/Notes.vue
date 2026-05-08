@@ -1,5 +1,30 @@
 <template>
-  <div class="notes-page">
+  <div class="notes-page page-shell">
+    <section class="container page-hero notes-hero">
+      <div class="page-hero__content">
+        <p class="page-hero__kicker">Knowledge Base</p>
+        <h1 class="page-hero__title">技术笔记</h1>
+        <p class="page-hero__desc">
+          按主题组织长期笔记和章节目录，适合系统学习、排查问题和回看工程实践。
+        </p>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric-tile">
+          <strong>{{ tags.length }}</strong>
+          <span>分类</span>
+        </div>
+        <div class="metric-tile">
+          <strong>{{ chapterTotal }}</strong>
+          <span>章节</span>
+        </div>
+        <div class="metric-tile">
+          <strong>{{ noteArticleTotal }}</strong>
+          <span>文章</span>
+        </div>
+      </div>
+    </section>
+
     <div class="notes-container">
       <!-- 左侧边栏 - 分类列表 -->
       <aside class="notes-sidebar">
@@ -16,13 +41,25 @@
           >
             {{ tag.name }}
           </div>
+          <el-empty v-if="!tags.length" description="暂无分类" :image-size="80" />
         </div>
       </aside>
 
       <!-- 右侧主内容区 - 章节目录 -->
       <main class="notes-main" v-loading="loading">
         <div v-if="currentTag" class="chapters-content">
-          <h2 class="content-title">{{ currentTag }}</h2>
+          <div class="content-heading">
+            <div>
+              <h2 class="content-title">{{ currentTag }}</h2>
+              <p class="content-subtitle">
+                共 {{ chapterTotal }} 个章节，{{ noteArticleTotal }} 篇文章
+              </p>
+            </div>
+            <div class="content-actions">
+              <el-button size="small" @click="expandAllChapters">全部展开</el-button>
+              <el-button size="small" @click="expandedChapters = []">全部收起</el-button>
+            </div>
+          </div>
 
           <!-- 章节列表（支持多级目录） -->
           <div v-for="chapter in chapters" :key="chapter.id" class="chapter-section">
@@ -126,6 +163,14 @@ const expandedChapters = ref([])
 // 数据缓存
 const chaptersCache = ref({})
 
+const chapterTotal = computed(() => {
+  return countChapters(chapters.value)
+})
+
+const noteArticleTotal = computed(() => {
+  return countArticles(chapters.value)
+})
+
 onMounted(() => {
   fetchTags()
   // 从路由参数获取标签
@@ -193,6 +238,29 @@ const toggleChapter = (chapterId) => {
   }
 }
 
+const countChapters = (list = []) => {
+  return list.reduce((sum, chapter) => {
+    return sum + 1 + countChapters(chapter.sub_chapters || [])
+  }, 0)
+}
+
+const countArticles = (list = []) => {
+  return list.reduce((sum, chapter) => {
+    return sum + (chapter.articles?.length || 0) + countArticles(chapter.sub_chapters || [])
+  }, 0)
+}
+
+const collectChapterIds = (list = []) => {
+  return list.flatMap(chapter => [
+    chapter.id,
+    ...collectChapterIds(chapter.sub_chapters || [])
+  ])
+}
+
+const expandAllChapters = () => {
+  expandedChapters.value = collectChapterIds(chapters.value)
+}
+
 // 计算章节下的总文章数（包括子章节的文章）
 const getTotalArticleCount = (chapter) => {
   let count = chapter.articles?.length || 0
@@ -223,22 +291,34 @@ const formatDate = (dateString) => {
 
 <style scoped>
 .notes-page {
-  min-height: calc(100vh - 60px);
-  background-color: #f5f7fa;
+  min-height: calc(100vh - var(--leaf-header-height));
+  background-color: var(--leaf-bg);
+}
+
+.notes-hero {
+  width: min(1400px, calc(100% - 40px));
+  margin: 0 auto 24px;
+  padding: 24px 28px;
 }
 
 .notes-container {
   display: flex;
-  max-width: 1400px;
+  width: min(1400px, calc(100% - 40px));
+  max-width: none;
   margin: 0 auto;
-  min-height: calc(100vh - 60px);
+  min-height: 620px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: var(--leaf-surface);
+  box-shadow: var(--leaf-shadow-sm);
+  overflow: hidden;
 }
 
 /* 左侧边栏 */
 .notes-sidebar {
-  width: 260px;
-  background-color: #fff;
-  border-right: 1px solid #e4e7ed;
+  width: 280px;
+  background-color: var(--leaf-surface);
+  border-right: 1px solid var(--leaf-border);
   flex-shrink: 0;
 }
 
@@ -248,9 +328,13 @@ const formatDate = (dateString) => {
   gap: 8px;
   padding: 20px;
   font-size: 18px;
-  font-weight: 600;
-  color: #409eff;
-  border-bottom: 1px solid #e4e7ed;
+  font-weight: 750;
+  color: var(--leaf-heading);
+  border-bottom: 1px solid var(--leaf-border);
+}
+
+.sidebar-header .el-icon {
+  color: var(--leaf-primary);
 }
 
 .category-list {
@@ -259,21 +343,22 @@ const formatDate = (dateString) => {
 
 .category-item {
   padding: 12px 20px;
-  color: #606266;
+  color: var(--leaf-muted);
   cursor: pointer;
-  transition: all 0.3s;
+  font-weight: 650;
+  transition: all 0.2s ease;
   border-left: 3px solid transparent;
 }
 
 .category-item:hover {
-  background-color: #f5f7fa;
-  color: #409eff;
+  background-color: var(--leaf-surface-muted);
+  color: var(--leaf-primary);
 }
 
 .category-item.active {
-  background-color: #ecf5ff;
-  color: #409eff;
-  border-left-color: #409eff;
+  background-color: var(--leaf-primary-soft);
+  color: var(--leaf-primary);
+  border-left-color: var(--leaf-primary);
 }
 
 /* 右侧主内容 */
@@ -281,16 +366,36 @@ const formatDate = (dateString) => {
   flex: 1;
   padding: 30px;
   overflow-y: auto;
-  background-color: #f5f7fa;
+  background-color: #fbfcfe;
+}
+
+.content-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .content-title {
   font-size: 24px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #409eff;
+  font-weight: 800;
+  color: var(--leaf-heading);
+  margin: 0;
+}
+
+.content-subtitle {
+  margin: 6px 0 0;
+  color: var(--leaf-muted);
+  font-size: 14px;
+}
+
+.content-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .chapter-section {
@@ -302,28 +407,30 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 10px;
   padding: 15px 20px;
-  background-color: #409eff;
-  color: #fff;
-  border-radius: 8px;
+  background-color: var(--leaf-surface);
+  color: var(--leaf-heading);
+  border: 1px solid var(--leaf-border);
+  border-left: 4px solid var(--leaf-primary);
+  border-radius: var(--leaf-radius);
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .chapter-header:hover {
-  background-color: #66b1ff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: var(--leaf-shadow-md);
 }
 
 .chapter-header.expanded {
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--leaf-radius) var(--leaf-radius) 0 0;
 }
 
 .chapter-content {
-  background-color: #fff;
-  border: 1px solid #e4e7ed;
+  background-color: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
   border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--leaf-radius) var(--leaf-radius);
   padding: 15px;
 }
 
@@ -341,17 +448,18 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 8px;
   padding: 12px 15px;
-  background-color: #79bbff;
-  color: #fff;
+  background-color: var(--leaf-surface-muted);
+  color: var(--leaf-heading);
+  border: 1px solid var(--leaf-border);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 1px 4px rgba(121, 187, 255, 0.3);
+  box-shadow: none;
 }
 
 .sub-chapter-header:hover {
-  background-color: #a0cfff;
-  box-shadow: 0 2px 8px rgba(121, 187, 255, 0.4);
+  background-color: var(--leaf-primary-soft);
+  box-shadow: none;
 }
 
 .sub-chapter-header.expanded {
@@ -363,12 +471,12 @@ const formatDate = (dateString) => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: var(--leaf-heading);
 }
 
 .sub-articles-list {
-  background-color: #f9f9f9;
-  border: 1px solid #e4e7ed;
+  background-color: var(--leaf-surface-muted);
+  border: 1px solid var(--leaf-border);
   border-top: none;
   border-radius: 0 0 6px 6px;
   padding: 10px;
@@ -377,7 +485,7 @@ const formatDate = (dateString) => {
 .expand-icon {
   flex-shrink: 0;
   font-size: 16px;
-  color: #fff;
+  color: var(--leaf-primary);
   transition: transform 0.3s;
 }
 
@@ -385,18 +493,18 @@ const formatDate = (dateString) => {
   flex: 1;
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 750;
+  color: var(--leaf-heading);
 }
 
 .article-count {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--leaf-muted);
   font-weight: normal;
 }
 
 .articles-list {
-  background-color: #fff;
+  background-color: var(--leaf-surface);
   padding: 0;
 }
 
@@ -408,16 +516,16 @@ const formatDate = (dateString) => {
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 6px;
-  background-color: #fafafa;
-  border-left: 3px solid #409eff;
-  transition: all 0.3s;
+  background-color: var(--leaf-surface-muted);
+  border-left: 3px solid var(--leaf-primary);
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .article-item:hover {
-  background-color: #f0f7ff;
-  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
-  transform: translateX(4px);
+  background-color: var(--leaf-primary-soft);
+  box-shadow: none;
+  transform: translateX(3px);
 }
 
 .article-item:last-child {
@@ -432,7 +540,7 @@ const formatDate = (dateString) => {
 }
 
 .article-icon {
-  color: #409eff;
+  color: var(--leaf-primary);
   font-size: 18px;
   flex-shrink: 0;
 }
@@ -441,12 +549,12 @@ const formatDate = (dateString) => {
   flex: 1;
   font-size: 16px;
   font-weight: 500;
-  color: #303133;
+  color: var(--leaf-heading);
   transition: color 0.3s;
 }
 
 .article-item:hover .article-title {
-  color: #409eff;
+  color: var(--leaf-primary);
 }
 
 .article-meta {
@@ -454,7 +562,7 @@ const formatDate = (dateString) => {
   gap: 15px;
   padding-left: 28px;
   font-size: 12px;
-  color: #909399;
+  color: var(--leaf-subtle);
 }
 
 .article-meta span {
@@ -473,13 +581,22 @@ const formatDate = (dateString) => {
 /* 响应式 */
 @media (max-width: 768px) {
   .notes-container {
+    width: min(100% - 28px, 1400px);
+  }
+
+  .notes-hero {
+    width: min(100% - 28px, 1400px);
+    padding: 22px;
+  }
+
+  .notes-container {
     flex-direction: column;
   }
 
   .notes-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid var(--leaf-border);
   }
 
   .category-list {
@@ -493,12 +610,20 @@ const formatDate = (dateString) => {
     padding: 8px 16px;
     border-radius: 20px;
     border-left: none;
-    background-color: #f5f7fa;
+    background-color: var(--leaf-surface-muted);
   }
 
   .category-item.active {
-    background-color: #409eff;
+    background-color: var(--leaf-primary);
     color: #fff;
+  }
+
+  .notes-main {
+    padding: 20px;
+  }
+
+  .content-heading {
+    flex-direction: column;
   }
 }
 </style>

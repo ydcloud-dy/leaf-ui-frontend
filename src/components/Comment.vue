@@ -380,13 +380,18 @@ const formatDate = (date) => {
 <style scoped>
 .comment-section {
   margin-top: 40px;
+  padding: 28px;
+  background: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .section-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #303133;
+  color: var(--leaf-heading);
 }
 
 .comment-editor {
@@ -410,7 +415,7 @@ const formatDate = (date) => {
   display: flex;
   gap: 12px;
   padding: 20px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .comment-item:last-child {
@@ -430,16 +435,16 @@ const formatDate = (date) => {
 
 .username {
   font-weight: 500;
-  color: #303133;
+  color: var(--leaf-heading);
 }
 
 .time {
   font-size: 13px;
-  color: #909399;
+  color: var(--leaf-subtle);
 }
 
 .comment-text {
-  color: #606266;
+  color: var(--leaf-muted);
   line-height: 1.6;
   margin-bottom: 12px;
   white-space: pre-wrap;
@@ -453,8 +458,9 @@ const formatDate = (date) => {
 .reply-editor {
   margin-top: 12px;
   padding: 12px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
+  background-color: var(--leaf-surface-muted);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
 }
 
 .reply-actions {
@@ -468,7 +474,7 @@ const formatDate = (date) => {
 .replies {
   margin-top: 16px;
   padding-left: 20px;
-  border-left: 2px solid #ebeef5;
+  border-left: 2px solid var(--leaf-border);
 }
 
 .reply-item {
@@ -497,7 +503,7 @@ const formatDate = (date) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #909399;
+  color: var(--leaf-subtle);
   font-size: 13px;
 }
 
@@ -506,7 +512,7 @@ const formatDate = (date) => {
 }
 
 .reply-text {
-  color: #606266;
+  color: var(--leaf-muted);
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 8px;

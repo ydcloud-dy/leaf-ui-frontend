@@ -1,11 +1,32 @@
 <template>
-  <div class="archive">
+  <div class="archive page-shell">
     <div class="container">
-      <div class="page-header">
-        <div class="header-left">
-          <h1 class="page-title">文章归档</h1>
-          <p class="page-subtitle">时光荏苒，记录点滴</p>
+      <section class="page-hero archive-hero">
+        <div class="page-hero__content">
+          <p class="page-hero__kicker">Archive</p>
+          <h1 class="page-hero__title">文章归档</h1>
+          <p class="page-hero__desc">
+            按年份和月份回看所有内容，适合按时间线追踪问题复盘、技术积累和阶段性记录。
+          </p>
         </div>
+
+        <div class="metric-strip">
+          <div class="metric-tile">
+            <strong>{{ archiveTotal }}</strong>
+            <span>文章总数</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ archives.length }}</strong>
+            <span>年份</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ archiveMonthCount }}</strong>
+            <span>月份</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="archive-toolbar">
         <el-button
           v-if="archives.length > 0"
           size="small"
@@ -40,7 +61,8 @@
                   @click="router.push(`/articles/${article.id}`)"
                 >
                   <div class="article-date">
-                    {{ formatDay(article.created_at) }}
+                    <span>{{ formatMonth(article.created_at) }}</span>
+                    <strong>{{ formatDateDay(article.created_at) }}</strong>
                   </div>
                   <div class="article-info">
                     <h4 class="article-title">{{ article.title }}</h4>
@@ -77,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getArchiveArticles } from '@/api/article'
 import dayjs from 'dayjs'
@@ -88,6 +110,14 @@ const archives = ref([])
 const loading = ref(false)
 const collapsedMonths = ref(new Set())
 const allCollapsed = ref(false)
+
+const archiveTotal = computed(() => {
+  return archives.value.reduce((sum, year) => sum + year.count, 0)
+})
+
+const archiveMonthCount = computed(() => {
+  return archives.value.reduce((sum, year) => sum + year.months.length, 0)
+})
 
 onMounted(() => {
   fetchArchives()
@@ -155,8 +185,12 @@ const processArchiveData = (articles) => {
   return result
 }
 
-const formatDay = (date) => {
-  return dayjs(date).format('MM-DD')
+const formatMonth = (date) => {
+  return dayjs(date).format('MM')
+}
+
+const formatDateDay = (date) => {
+  return dayjs(date).format('DD')
 }
 
 // 切换月份折叠状态
@@ -195,31 +229,14 @@ const toggleAllMonths = () => {
 
 <style scoped>
 .archive {
-  padding: 20px 0;
+  padding-bottom: 0;
 }
 
-.page-header {
+.archive-toolbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 40px;
-}
-
-.header-left {
-  flex: 1;
-}
-
-.page-title {
-  font-size: 36px;
-  font-weight: 700;
-  color: #303133;
-  margin: 0 0 8px 0;
-}
-
-.page-subtitle {
-  font-size: 16px;
-  color: #909399;
-  margin: 0;
+  margin: -8px 0 24px;
 }
 
 .archive-content {
@@ -227,29 +244,31 @@ const toggleAllMonths = () => {
 }
 
 .year-group {
-  margin-bottom: 60px;
+  margin-bottom: 52px;
+  position: relative;
 }
 
 .year-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #409eff;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .year-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #409eff;
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--leaf-primary);
   margin: 0;
 }
 
 .year-count {
   font-size: 14px;
-  color: #909399;
-  background-color: #f5f7fa;
+  color: var(--leaf-muted);
+  background-color: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
   padding: 4px 12px;
   border-radius: 12px;
 }
@@ -267,16 +286,16 @@ const toggleAllMonths = () => {
   user-select: none;
   transition: all 0.3s;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--leaf-radius);
 }
 
 .month-header:hover {
-  background-color: #f5f7fa;
+  background-color: var(--leaf-surface-muted);
 }
 
 .collapse-icon {
   font-size: 16px;
-  color: #909399;
+  color: var(--leaf-muted);
   transition: transform 0.3s;
 }
 
@@ -286,18 +305,18 @@ const toggleAllMonths = () => {
 
 .month-title {
   font-size: 20px;
-  font-weight: 600;
-  color: #606266;
+  font-weight: 750;
+  color: var(--leaf-heading);
   margin: 0;
   padding-left: 12px;
-  border-left: 3px solid #67c23a;
+  border-left: 3px solid var(--leaf-green);
   flex: 1;
 }
 
 .month-count {
   font-size: 12px;
-  color: #909399;
-  background-color: #f0f2f5;
+  color: var(--leaf-muted);
+  background-color: #eef2f6;
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -306,36 +325,77 @@ const toggleAllMonths = () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  position: relative;
+  padding-left: 22px;
+}
+
+.articles-list::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 2px;
+  background: #dbe3ef;
 }
 
 .article-item {
   display: flex;
   gap: 20px;
-  padding: 16px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 18px;
+  background-color: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-sm);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.article-item::before {
+  content: '';
+  position: absolute;
+  top: 34px;
+  left: -28px;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--leaf-primary);
+  box-shadow: 0 0 0 1px #bfdbfe;
 }
 
 .article-item:hover {
-  transform: translateX(8px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: var(--leaf-shadow-md);
 }
 
 .article-date {
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--leaf-primary);
   color: #fff;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--leaf-radius);
   flex-shrink: 0;
+}
+
+.article-date span {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.78;
+  line-height: 1;
+}
+
+.article-date strong {
+  margin-top: 5px;
+  font-size: 22px;
+  font-weight: 820;
+  line-height: 1;
 }
 
 .article-info {
@@ -348,7 +408,7 @@ const toggleAllMonths = () => {
 .article-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--leaf-heading);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -357,7 +417,7 @@ const toggleAllMonths = () => {
 
 .article-summary {
   font-size: 14px;
-  color: #909399;
+  color: var(--leaf-muted);
   margin: 4px 0 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -378,7 +438,7 @@ const toggleAllMonths = () => {
   align-items: center;
   gap: 4px;
   font-size: 14px;
-  color: #909399;
+  color: var(--leaf-subtle);
 }
 
 @media (max-width: 768px) {
@@ -391,8 +451,8 @@ const toggleAllMonths = () => {
   }
 
   .article-date {
-    width: 100%;
-    height: 40px;
+    width: 64px;
+    height: 56px;
   }
 }
 </style>

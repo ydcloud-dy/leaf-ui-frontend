@@ -4,7 +4,7 @@
       <div class="detail-layout">
         <!-- 左侧主内容区 -->
         <div class="main-content">
-          <el-card v-loading="loading" class="article-card">
+          <el-card v-loading="loading" class="article-card" shadow="never" :body-style="{ padding: '0' }">
             <template v-if="article">
               <!-- 文章头部 -->
               <div class="article-header">
@@ -299,44 +299,34 @@ const generateCodeWithLineNumbers = (rawCode, highlighted) => {
 const md = new MarkdownIt({
   html: true,
   linkify: true,
-  typographer: true,
-  highlight: function (str, lang) {
-    // 清理代码
-    str = str.replace(/^\n+/, '').replace(/\n+$/, '').trim()
-
-    const displayLang = lang ? lang.toUpperCase() : 'CODE'
-
-    let highlighted = ''
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        highlighted = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
-      } catch (__) {
-        highlighted = hljs.highlightAuto(str).value
-      }
-    } else {
-      highlighted = md.utils.escapeHtml(str)
-    }
-
-    // 分割代码行
-    const rawLines = str.split('\n')
-    const highlightedLines = highlighted.split('\n')
-
-    // 确保行数相等
-    const lines = Math.max(rawLines.length, highlightedLines.length)
-    const lineNumbers = Array(lines).fill(0)
-        .map((_, i) => `<span class="line-number">${i + 1}</span>`)
-        .join('')
-
-    const codeLines = Array(lines).fill(0)
-        .map((_, i) => {
-          const line = highlightedLines[i] || ''
-          return `<span class="code-line">${line || '&nbsp;'}</span>`
-        })
-        .join('')
-
-    return `<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang-label">${displayLang}</span><button class="code-copy-btn" data-code="${encodeURIComponent(str)}"><svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span class="copy-text">复制代码</span></button></div><div class="code-block-body"><div class="line-numbers-wrapper">${lineNumbers}</div><pre class="hljs${lang ? ` language-${lang}` : ''}"><code>${codeLines}</code></pre></div></div>`
-  }
+  typographer: true
 })
+
+const renderCodeBlock = (rawCode, lang = '') => {
+  const codeText = rawCode.replace(/^\n+/, '').replace(/\n+$/, '')
+  const displayLang = lang ? lang.toUpperCase() : 'CODE'
+
+  let highlighted = ''
+  if (lang && hljs.getLanguage(lang)) {
+    try {
+      highlighted = hljs.highlight(codeText, { language: lang, ignoreIllegals: true }).value
+    } catch (__) {
+      highlighted = hljs.highlightAuto(codeText).value
+    }
+  } else {
+    highlighted = md.utils.escapeHtml(codeText)
+  }
+
+  const { lineNumbers, codeLines } = generateCodeWithLineNumbers(codeText, highlighted)
+
+  return `<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang-label">${displayLang}</span><button class="code-copy-btn" data-code="${encodeURIComponent(codeText)}"><svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span class="copy-text">复制代码</span></button></div><div class="code-block-body"><div class="line-numbers-wrapper">${lineNumbers}</div><pre class="hljs${lang ? ` language-${lang}` : ''}"><code>${codeLines}</code></pre></div></div>`
+}
+
+md.renderer.rules.fence = (tokens, idx) => {
+  const token = tokens[idx]
+  const lang = token.info ? token.info.trim().split(/\s+/)[0] : ''
+  return `${renderCodeBlock(token.content, lang)}\n`
+}
 
 const renderedContent = computed(() => {
   // 优先使用 content_markdown 渲染，以便应用代码高亮和复制功能
@@ -370,38 +360,11 @@ const processHtmlCodeBlocks = (html) => {
       }
     }
 
-    const displayLang = lang ? lang.toUpperCase() : 'CODE'
     const codeText = code.textContent || ''
 
-    // 应用高亮
-    let highlightedCode = codeText
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        highlightedCode = hljs.highlight(codeText, { language: lang, ignoreIllegals: true }).value
-      } catch (e) {
-        highlightedCode = hljs.highlightAuto(codeText).value
-      }
-    } else {
-      highlightedCode = md.utils.escapeHtml(codeText)
-    }
-
-    // 创建新的代码块结构
     const wrapper = doc.createElement('div')
-    wrapper.className = 'code-block-wrapper'
-    wrapper.innerHTML = `
-      <div class="code-block-header">
-        <span class="code-lang-label">${displayLang}</span>
-        <button class="code-copy-btn" data-code="${encodeURIComponent(codeText)}">
-          <svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14">
-            <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-          </svg>
-          <span class="copy-text">复制代码</span>
-        </button>
-      </div>
-      <pre class="hljs${lang ? ` language-${lang}` : ''}"><code>${highlightedCode}</code></pre>
-    `
-
-    pre.parentNode.replaceChild(wrapper, pre)
+    wrapper.innerHTML = renderCodeBlock(codeText, lang)
+    pre.parentNode.replaceChild(wrapper.firstElementChild, pre)
   })
 
   return doc.body.innerHTML
@@ -1343,5 +1306,566 @@ const formatDate = (date) => {
   .nav-meta-item {
     flex-wrap: wrap;
   }
+}
+
+/* 阅读页视觉重构覆盖 */
+.article-detail {
+  padding: 34px 0 0;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 28px;
+  align-items: start;
+}
+
+.article-card {
+  overflow: hidden;
+  border-color: var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.article-header {
+  margin: 0;
+  padding: 36px 40px 26px;
+  border-bottom: 1px solid var(--leaf-border);
+  background: #fff;
+}
+
+.article-title {
+  margin: 0 0 22px;
+  color: var(--leaf-heading);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.author-name {
+  color: var(--leaf-heading);
+  font-weight: 700;
+}
+
+.publish-time,
+.stat-item {
+  color: var(--leaf-subtle);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.article-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.article-tags {
+  gap: 8px;
+}
+
+.article-content {
+  margin: 0;
+  padding: 34px 40px 16px;
+  color: #273142;
+  font-size: 17px;
+  line-height: 1.86;
+}
+
+.article-content :deep(h1),
+.article-content :deep(h2),
+.article-content :deep(h3),
+.article-content :deep(h4),
+.article-content :deep(h5),
+.article-content :deep(h6) {
+  position: relative;
+  margin: 34px 0 14px;
+  padding-left: 0;
+  color: var(--leaf-heading);
+  font-weight: 760;
+  line-height: 1.32;
+}
+
+.article-content :deep(h1)::before,
+.article-content :deep(h2)::before,
+.article-content :deep(h3)::before {
+  display: none;
+}
+
+.article-content :deep(h1) {
+  font-size: 32px;
+}
+
+.article-content :deep(h2) {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--leaf-border);
+  font-size: 27px;
+}
+
+.article-content :deep(h3) {
+  font-size: 22px;
+}
+
+.article-content :deep(p) {
+  margin: 0 0 18px;
+}
+
+.article-content :deep(a) {
+  color: var(--leaf-primary);
+  font-weight: 650;
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+
+.article-content :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.article-content :deep(p code),
+.article-content :deep(li code) {
+  padding: 2px 7px;
+  border: 1px solid #dbe3ef;
+  border-radius: 5px;
+  background: #f3f6fa;
+  color: #b42318;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
+.article-content :deep(.code-block-wrapper) {
+  margin: 24px 0;
+  overflow: hidden;
+  border: 1px solid #263244;
+  border-radius: var(--leaf-radius);
+  background: #111827;
+  box-shadow: none;
+}
+
+.article-content :deep(.code-block-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 9px 12px;
+  border-bottom: 1px solid #263244;
+  background: #111827;
+}
+
+.article-content :deep(.code-lang-label) {
+  color: #cbd5e1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.article-content :deep(.code-copy-btn) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #cbd5e1;
+  background: #1f2937;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.article-content :deep(.code-copy-btn:hover) {
+  color: #fff;
+  border-color: #475569;
+  background: #273449;
+}
+
+.article-content :deep(.code-copy-btn.copied) {
+  color: #86efac;
+  border-color: #22c55e;
+}
+
+.article-content :deep(.code-block-body) {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  background: #0f172a;
+}
+
+.article-content :deep(.line-numbers-wrapper) {
+  flex-shrink: 0;
+  min-width: 44px;
+  padding: 12px 0;
+  border-right: 1px solid #263244;
+  background: #111827;
+  text-align: right;
+  user-select: none;
+}
+
+.article-content :deep(.line-number) {
+  display: block;
+  padding: 0 10px;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.article-content :deep(pre),
+.article-content :deep(pre.hljs),
+.article-content :deep(.code-block-wrapper pre) {
+  flex: 1;
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  overflow-x: auto;
+  background: #0f172a !important;
+  color: #dbeafe !important;
+  font-size: 14px !important;
+  line-height: 1.9 !important;
+}
+
+.article-content :deep(pre code) {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+  font-size: 14px !important;
+  line-height: 1.9 !important;
+}
+
+.article-content :deep(.code-line) {
+  display: block;
+  line-height: 1.9;
+}
+
+.article-content :deep(blockquote) {
+  margin: 22px 0;
+  padding: 14px 18px;
+  border-left: 4px solid var(--leaf-primary);
+  border-radius: 0 var(--leaf-radius) var(--leaf-radius) 0;
+  background: #f8fafc;
+  color: var(--leaf-muted);
+  font-style: normal;
+}
+
+.article-content :deep(img) {
+  display: block;
+  max-width: 100%;
+  margin: 24px auto;
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.article-content :deep(img:hover) {
+  transform: translateY(-2px);
+  box-shadow: var(--leaf-shadow-lg);
+}
+
+.article-content :deep(ul),
+.article-content :deep(ol) {
+  margin: 0 0 18px;
+  padding-left: 24px;
+}
+
+.article-content :deep(li) {
+  margin-bottom: 8px;
+}
+
+.article-content :deep(table) {
+  width: 100%;
+  margin: 24px 0;
+  overflow: hidden;
+  border: 1px solid var(--leaf-border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--leaf-radius);
+  box-shadow: none;
+}
+
+.article-content :deep(table th),
+.article-content :deep(table td) {
+  border: 0;
+  border-bottom: 1px solid var(--leaf-border);
+  padding: 12px 14px;
+}
+
+.article-content :deep(table th) {
+  background: #f8fafc;
+  color: var(--leaf-heading);
+  font-weight: 750;
+}
+
+.article-content :deep(table tr:last-child td) {
+  border-bottom: 0;
+}
+
+.article-actions {
+  justify-content: center;
+  gap: 12px;
+  margin: 0 40px;
+  padding: 28px 0 34px;
+  border-top: 1px solid var(--leaf-border);
+}
+
+.toc-sidebar {
+  width: auto;
+}
+
+.toc-wrapper {
+  position: sticky;
+  top: calc(var(--leaf-header-height) + 20px);
+  max-height: calc(100vh - var(--leaf-header-height) - 40px);
+  padding: 18px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: var(--leaf-surface);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.toc-title {
+  margin: 0 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--leaf-border);
+  color: var(--leaf-heading);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.toc-item {
+  margin: 1px 0;
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: var(--leaf-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.toc-item:hover,
+.toc-item.active {
+  background: var(--leaf-primary-soft);
+  color: var(--leaf-primary);
+}
+
+.toc-item.toc-level-1 {
+  padding-left: 9px;
+  font-size: 14px;
+}
+
+.toc-item.toc-level-2 {
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.toc-item.toc-level-3 {
+  padding-left: 28px;
+  font-size: 13px;
+}
+
+.toc-item.toc-level-4,
+.toc-item.toc-level-5,
+.toc-item.toc-level-6 {
+  padding-left: 38px;
+  font-size: 12px;
+}
+
+.article-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.9fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  margin: 30px 0;
+  padding: 0;
+  border-top: 0;
+}
+
+.nav-item,
+.nav-center {
+  max-width: none;
+  padding: 18px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: var(--leaf-surface);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.nav-item::before {
+  display: none;
+}
+
+.nav-item:hover:not(.disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.32);
+  box-shadow: var(--leaf-shadow-md);
+}
+
+.nav-arrow {
+  color: var(--leaf-primary);
+  font-size: 22px;
+}
+
+.nav-label {
+  color: var(--leaf-subtle);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.nav-title {
+  color: var(--leaf-heading);
+  font-size: 14px;
+}
+
+.nav-center {
+  background: var(--leaf-surface-muted);
+}
+
+.nav-meta-item {
+  font-size: 13px;
+}
+
+.meta-label {
+  color: var(--leaf-muted);
+}
+
+@media (max-width: 1200px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .toc-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .article-detail {
+    padding-top: 18px;
+  }
+
+  .article-header {
+    padding: 24px 20px 20px;
+  }
+
+  .article-title {
+    font-size: 28px;
+  }
+
+  .article-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .article-content {
+    padding: 24px 20px 10px;
+    font-size: 16px;
+  }
+
+  .article-content :deep(h1) {
+    font-size: 26px;
+  }
+
+  .article-content :deep(h2) {
+    font-size: 23px;
+  }
+
+  .article-content :deep(h3) {
+    font-size: 20px;
+  }
+
+  .article-actions {
+    margin: 0 20px;
+    flex-wrap: wrap;
+  }
+
+  .article-navigation {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .nav-item,
+  .nav-center {
+    padding: 16px;
+  }
+
+  .article-content :deep(.code-block-header) {
+    padding: 8px 10px;
+  }
+
+  .article-content :deep(.copy-text) {
+    display: none;
+  }
+}
+
+/* 代码块最终形态：只保留一层容器，避免 Markdown 默认 pre/code 外壳造成重复背景 */
+.article-content :deep(.code-block-wrapper) {
+  margin: 22px 0;
+  overflow: hidden;
+  border: 1px solid #243044;
+  border-radius: 8px;
+  background: #0f172a;
+  box-shadow: none;
+}
+
+.article-content :deep(.code-block-header) {
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid #243044;
+  background: #111827;
+}
+
+.article-content :deep(.code-block-body) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  background: #0f172a;
+}
+
+.article-content :deep(.line-numbers-wrapper) {
+  min-width: 48px;
+  padding: 14px 0;
+  background: #111827;
+  border-right: 1px solid #243044;
+}
+
+.article-content :deep(.line-number) {
+  padding: 0 12px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.article-content :deep(.code-block-wrapper pre),
+.article-content :deep(.code-block-wrapper pre.hljs) {
+  min-width: 0;
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  background: #0f172a !important;
+  line-height: 1.85 !important;
+}
+
+.article-content :deep(.code-block-wrapper pre code) {
+  line-height: 1.85 !important;
+}
+
+.article-content :deep(.code-line) {
+  min-height: 1.85em;
+  line-height: 1.85;
+}
+
+.article-content :deep(.code-copy-btn) {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
 }
 </style>

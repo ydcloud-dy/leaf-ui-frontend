@@ -6,7 +6,7 @@
         <p class="page-subtitle">Hello World</p>
       </div>
 
-      <el-card class="about-card" v-loading="loading">
+      <el-card class="about-card" shadow="never" v-loading="loading">
         <div class="about-content">
           <div class="avatar-section">
             <el-avatar :size="150" :src="bloggerInfo.avatar" class="avatar">
@@ -155,12 +155,14 @@ onActivated(() => {
 
 <style scoped>
 .about {
-  padding: 20px 0;
+  padding: 12px 0 0;
 }
 
 .about-card {
   max-width: 900px;
   margin: 0 auto;
+  border-color: var(--leaf-border);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .about-content {
@@ -175,8 +177,9 @@ onActivated(() => {
   align-items: center;
   padding: 40px 0;
   background:
+    linear-gradient(90deg, rgba(17, 24, 39, 0.72), rgba(17, 24, 39, 0.28)),
     url('../../img/guanyuwo.png') center/cover;
-  border-radius: 8px;
+  border-radius: var(--leaf-radius);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -194,8 +197,8 @@ onActivated(() => {
       45deg,
       transparent,
       transparent 10px,
-      rgba(255, 255, 255, 0.03) 10px,
-      rgba(255, 255, 255, 0.03) 20px
+      rgba(255, 255, 255, 0.02) 10px,
+      rgba(255, 255, 255, 0.02) 20px
     );
   pointer-events: none;
 }
@@ -225,15 +228,15 @@ onActivated(() => {
 .section-title {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--leaf-heading);
   margin: 30px 0 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #409eff;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .text {
   line-height: 1.8;
-  color: #606266;
+  color: var(--leaf-muted);
   font-size: 15px;
   white-space: pre-wrap;
 }
@@ -254,7 +257,7 @@ onActivated(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #606266;
+  color: var(--leaf-muted);
   font-size: 15px;
 }
 
@@ -271,25 +274,26 @@ onActivated(() => {
   align-items: center;
   gap: 12px;
   padding: 30px 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  transition: all 0.3s;
+  background-color: var(--leaf-surface-muted);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--leaf-shadow-md);
 }
 
 .stat-number {
   font-size: 28px;
   font-weight: 700;
-  color: #303133;
+  color: var(--leaf-heading);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--leaf-muted);
 }
 
 @media (max-width: 768px) {

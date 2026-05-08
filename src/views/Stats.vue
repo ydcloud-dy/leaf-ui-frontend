@@ -1,85 +1,115 @@
 <template>
-  <div class="stats">
+  <div class="stats page-shell">
     <div class="container">
-      <div class="page-header">
-        <h1 class="page-title">📊 网站统计</h1>
-        <p class="page-subtitle">实时统计数据，每30秒自动刷新</p>
-      </div>
+      <section class="page-hero stats-hero">
+        <div class="page-hero__content">
+          <p class="page-hero__kicker">Analytics</p>
+          <h1 class="page-hero__title">网站统计</h1>
+          <p class="page-hero__desc">
+            实时观察访问、在线人数和内容规模。数据每 30 秒自动刷新一次。
+          </p>
+          <p class="refresh-text">最近刷新：{{ lastUpdated || '等待数据' }}</p>
+        </div>
 
-      <div class="stats-grid" v-loading="loading">
+        <div class="metric-strip">
+          <div class="metric-tile">
+            <strong>{{ formatNumber(stats.total_views) }}</strong>
+            <span>总浏览量</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ stats.online_count }}</strong>
+            <span>在线人数</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ stats.article_count }}</strong>
+            <span>文章</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="stats-featured" v-loading="loading">
         <!-- 网站运行时长 -->
         <div class="stat-card">
-          <div class="stat-icon">🔄</div>
+          <div class="stat-icon"><el-icon><Refresh /></el-icon></div>
           <div class="stat-label">网站运行时长</div>
           <div class="stat-value">{{ stats.site_runtime }}天</div>
         </div>
 
         <!-- 24小时访问量 -->
         <div class="stat-card">
-          <div class="stat-icon">📈</div>
+          <div class="stat-icon"><el-icon><TrendCharts /></el-icon></div>
           <div class="stat-label">24小时访问量（PV）</div>
           <div class="stat-value">{{ stats.today_views }}次</div>
         </div>
 
         <!-- 当前在线人数 -->
         <div class="stat-card highlight">
-          <div class="stat-icon">🌐</div>
+          <div class="stat-icon"><el-icon><Connection /></el-icon></div>
           <div class="stat-label">当前在线人数</div>
           <div class="stat-value">{{ stats.online_count }}人</div>
         </div>
 
         <!-- 平均访问时长 -->
         <div class="stat-card">
-          <div class="stat-icon">⏱️</div>
+          <div class="stat-icon"><el-icon><Timer /></el-icon></div>
           <div class="stat-label">平均访问时长</div>
           <div class="stat-value">{{ formatDuration(stats.avg_visit_duration) }}</div>
         </div>
+      </div>
 
+      <div class="section-heading stats-section-heading">
+        <div>
+          <h2>内容与互动</h2>
+          <p>站内内容规模、用户和评论数据</p>
+        </div>
+      </div>
+
+      <div class="stats-grid" v-loading="loading">
         <!-- 文章篇数 -->
         <div class="stat-card">
-          <div class="stat-icon">📝</div>
+          <div class="stat-icon"><el-icon><Document /></el-icon></div>
           <div class="stat-label">文章篇数</div>
           <div class="stat-value">{{ stats.article_count }}篇</div>
         </div>
 
         <!-- 笔记篇数 -->
         <div class="stat-card">
-          <div class="stat-icon">📔</div>
+          <div class="stat-icon"><el-icon><Notebook /></el-icon></div>
           <div class="stat-label">笔记篇数</div>
           <div class="stat-value">{{ stats.chapter_count }}篇</div>
         </div>
 
         <!-- 文章分类数 -->
         <div class="stat-card">
-          <div class="stat-icon">📚</div>
+          <div class="stat-icon"><el-icon><Collection /></el-icon></div>
           <div class="stat-label">文章分类数</div>
           <div class="stat-value">{{ stats.category_count }}个</div>
         </div>
 
         <!-- 文章标签数 -->
         <div class="stat-card">
-          <div class="stat-icon">🏷️</div>
+          <div class="stat-icon"><el-icon><CollectionTag /></el-icon></div>
           <div class="stat-label">文章标签数</div>
           <div class="stat-value">{{ stats.tag_count }}个</div>
         </div>
 
         <!-- 总浏览量 -->
         <div class="stat-card">
-          <div class="stat-icon">👀</div>
+          <div class="stat-icon"><el-icon><View /></el-icon></div>
           <div class="stat-label">总浏览量</div>
           <div class="stat-value">{{ formatNumber(stats.total_views) }}</div>
         </div>
 
         <!-- 评论总数 -->
         <div class="stat-card">
-          <div class="stat-icon">💬</div>
+          <div class="stat-icon"><el-icon><ChatDotRound /></el-icon></div>
           <div class="stat-label">评论总数</div>
           <div class="stat-value">{{ stats.comment_count }}条</div>
         </div>
 
         <!-- 用户总数 -->
         <div class="stat-card">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon"><el-icon><User /></el-icon></div>
           <div class="stat-label">注册用户数</div>
           <div class="stat-value">{{ stats.user_count }}人</div>
         </div>
@@ -91,8 +121,22 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getStats } from '@/api/stats'
+import {
+  ChatDotRound,
+  Collection,
+  CollectionTag,
+  Connection,
+  Document,
+  Notebook,
+  Refresh,
+  Timer,
+  TrendCharts,
+  User,
+  View
+} from '@element-plus/icons-vue'
 
 const loading = ref(false)
+const lastUpdated = ref('')
 const stats = ref({
   article_count: 0,
   chapter_count: 0,
@@ -128,6 +172,15 @@ const formatNumber = (num) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+const formatClock = (date) => {
+  return date.toLocaleTimeString('zh-CN', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
 // 加载统计数据
 const loadStats = async () => {
   try {
@@ -135,6 +188,7 @@ const loadStats = async () => {
     const res = await getStats()
     if (res.data) {
       stats.value = res.data
+      lastUpdated.value = formatClock(new Date())
     }
   } catch (error) {
     console.error('Failed to load stats:', error)
@@ -162,93 +216,80 @@ onUnmounted(() => {
 <style scoped>
 .stats {
   min-height: 100vh;
-  padding: 20px 0 60px;
-  background:
-    url('../../img/wukong.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  padding-bottom: 60px;
+  background: var(--leaf-bg);
 }
 
-.page-header {
-  padding: 40px 0 30px;
-  text-align: center;
+.stats-hero {
+  margin-top: 0;
 }
 
-.page-title {
-  font-size: 36px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+.refresh-text {
+  margin: 14px 0 0;
+  color: var(--leaf-muted);
+  font-size: 13px;
+  font-weight: 650;
 }
 
-.page-subtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+.stats-featured,
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.stats-section-heading {
+  margin-top: 34px;
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .stat-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
   padding: 32px 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--leaf-shadow-sm);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: default;
 }
 
 .stat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: var(--leaf-shadow-md);
 }
 
 .stat-card.highlight {
-  background: #409eff;
+  background: var(--leaf-primary);
   color: white;
   position: relative;
   overflow: hidden;
 }
 
 .stat-card.highlight::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
-  pointer-events: none;
+  display: none;
 }
 
 .stat-icon {
-  font-size: 48px;
+  color: var(--leaf-primary);
+  font-size: 42px;
   margin-bottom: 16px;
-  animation: float 3s ease-in-out infinite;
+  line-height: 1;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.stat-card.highlight .stat-icon {
+  color: #fff;
 }
 
 .stat-label {
   font-size: 15px;
-  color: #666;
+  color: var(--leaf-muted);
   margin-bottom: 12px;
-  font-weight: 500;
+  font-weight: 650;
 }
 
 .stat-card.highlight .stat-label {
@@ -257,8 +298,8 @@ onUnmounted(() => {
 
 .stat-value {
   font-size: 32px;
-  font-weight: 700;
-  color: #333;
+  font-weight: 800;
+  color: var(--leaf-heading);
   line-height: 1;
 }
 
@@ -267,6 +308,11 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .stats-featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
@@ -291,6 +337,12 @@ onUnmounted(() => {
 
   .page-title {
     font-size: 28px;
+  }
+}
+
+@media (max-width: 520px) {
+  .stats-featured {
+    grid-template-columns: 1fr;
   }
 }
 </style>

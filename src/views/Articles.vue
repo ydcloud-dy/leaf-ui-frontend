@@ -1,10 +1,30 @@
 <template>
-  <div class="articles">
+  <div class="articles page-shell">
     <div class="container">
-      <div class="page-header">
-        <h1 class="page-title">文章列表</h1>
-        <p class="page-subtitle">探索知识的海洋</p>
-      </div>
+      <section class="page-hero articles-hero">
+        <div class="page-hero__content">
+          <p class="page-hero__kicker">Articles</p>
+          <h1 class="page-hero__title">文章列表</h1>
+          <p class="page-hero__desc">
+            按发布时间、浏览量和点赞数筛选技术文章，快速定位你正在查找的实践记录。
+          </p>
+        </div>
+
+        <div class="metric-strip">
+          <div class="metric-tile">
+            <strong>{{ total }}</strong>
+            <span>匹配文章</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ currentPage }}</strong>
+            <span>当前页</span>
+          </div>
+          <div class="metric-tile">
+            <strong>{{ sortLabel }}</strong>
+            <span>排序方式</span>
+          </div>
+        </div>
+      </section>
 
       <!-- 当前选中的标签 -->
       <div v-if="selectedTag" class="active-tag-filter">
@@ -15,12 +35,12 @@
       </div>
 
       <!-- 筛选和排序 -->
-      <div class="filters">
+      <div class="toolbar-panel filters">
         <el-input
           v-model="searchKeyword"
           placeholder="搜索文章..."
           clearable
-          style="width: 300px"
+          class="article-search"
           @input="handleSearchInput"
         >
           <template #prefix>
@@ -68,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getArticles, searchArticles } from '@/api/article'
 import ArticleCard from '@/components/ArticleCard.vue'
@@ -85,6 +105,15 @@ const searchKeyword = ref('')
 const selectedTag = ref('')
 const sortBy = ref('latest')
 let searchTimer = null
+
+const sortLabel = computed(() => {
+  const map = {
+    latest: '最新',
+    views: '浏览',
+    likes: '点赞'
+  }
+  return map[sortBy.value] || '默认'
+})
 
 onMounted(() => {
   // 从URL获取查询参数
@@ -164,18 +193,15 @@ const clearTagFilter = () => {
 
 <style scoped>
 .articles {
-  padding: 20px 0;
+  padding-bottom: 0;
 }
 
 .filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-top: -4px;
+}
+
+.article-search {
+  max-width: 420px;
 }
 
 .filter-actions {
@@ -189,14 +215,14 @@ const clearTagFilter = () => {
   gap: 12px;
   margin-bottom: 20px;
   padding: 16px 20px;
-  background-color: #f0f9ff;
-  border-radius: 8px;
-  border-left: 4px solid #409eff;
+  background: var(--leaf-primary-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--leaf-radius);
 }
 
 .active-tag-filter span {
-  font-weight: 500;
-  color: #606266;
+  color: var(--leaf-muted);
+  font-weight: 650;
 }
 
 .articles-list {
@@ -210,13 +236,12 @@ const clearTagFilter = () => {
 }
 
 @media (max-width: 768px) {
-  .filters {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .filter-actions {
     width: 100%;
+  }
+
+  .article-search {
+    max-width: none;
   }
 
   .filter-actions .el-select {

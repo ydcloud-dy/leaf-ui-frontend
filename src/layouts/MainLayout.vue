@@ -5,12 +5,14 @@
       <router-view />
     </main>
     <footer class="footer">
-      <div class="container">
-        <p>&copy; {{ currentYear }} {{ siteSettings.site_name || '个人博客' }}. </p>
-        <p v-if="siteSettings.copyright">{{ siteSettings.copyright }}</p>
+      <div class="container footer-content">
+        <div class="footer-brand">
+          <strong>{{ siteSettings.site_name || '个人博客' }}</strong>
+          <p>&copy; {{ currentYear }}. {{ siteSettings.copyright || '记录技术实践与生活片段。' }}</p>
+        </div>
 
         <!-- 固定显示备案号 -->
-        <p>
+        <p class="record-number">
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
             京ICP备2022023567号-2
           </a>
@@ -54,31 +56,53 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
-  padding: 20px 0;
 }
 
 .footer {
-  background-color: #2c3e50;
+  background: #111827;
+  color: rgba(255, 255, 255, 0.82);
+  padding: 28px 0;
+  margin-top: 70px;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.footer-brand strong {
+  display: block;
+  margin-bottom: 4px;
   color: #fff;
-  padding: 30px 0;
-  text-align: center;
-  margin-top: 60px;
+  font-size: 16px;
+  font-weight: 750;
 }
 
 .footer p {
-  margin: 5px 0;
-  opacity: 0.8;
+  margin: 0;
+  font-size: 14px;
 }
 
 .footer a {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
-  opacity: 0.8;
-  transition: opacity 0.3s;
+  transition: color 0.2s ease;
 }
 
 .footer a:hover {
-  opacity: 1;
-  text-decoration: underline;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    margin-top: 48px;
+  }
+
+  .footer-content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 </style>

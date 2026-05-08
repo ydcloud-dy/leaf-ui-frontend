@@ -6,7 +6,7 @@
         <p class="page-subtitle">欢迎留下您的足迹</p>
       </div>
 
-      <el-card class="guestbook-card">
+      <el-card class="guestbook-card" shadow="never">
         <!-- 发表留言 -->
         <div v-if="userStore.isLoggedIn" class="message-editor">
           <h3 class="editor-title">发表留言</h3>
@@ -194,24 +194,26 @@ const formatDate = (date) => {
 
 <style scoped>
 .guestbook {
-  padding: 20px 0;
+  padding: 12px 0 0;
 }
 
 .guestbook-card {
   max-width: 900px;
   margin: 0 auto;
+  border-color: var(--leaf-border);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .message-editor {
   padding-bottom: 30px;
   margin-bottom: 30px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .editor-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--leaf-heading);
   margin-bottom: 16px;
 }
 
@@ -231,7 +233,7 @@ const formatDate = (date) => {
 .section-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--leaf-heading);
   margin-bottom: 20px;
 }
 
@@ -245,13 +247,15 @@ const formatDate = (date) => {
   display: flex;
   gap: 16px;
   padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  transition: all 0.3s;
+  background-color: var(--leaf-surface-muted);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .message-item:hover {
-  background-color: #ecf5ff;
+  background-color: var(--leaf-primary-soft);
+  border-color: #bfdbfe;
 }
 
 .message-content {
@@ -267,17 +271,17 @@ const formatDate = (date) => {
 
 .username {
   font-weight: 500;
-  color: #303133;
+  color: var(--leaf-heading);
   font-size: 16px;
 }
 
 .time {
   font-size: 13px;
-  color: #909399;
+  color: var(--leaf-subtle);
 }
 
 .message-text {
-  color: #606266;
+  color: var(--leaf-muted);
   line-height: 1.8;
   font-size: 15px;
   margin-bottom: 12px;

@@ -16,12 +16,26 @@
         />
 
         <nav class="nav" :class="{ 'mobile-open': mobileMenuOpen }">
-          <router-link to="/" class="nav-link" exact @click="mobileMenuOpen = false">首页</router-link>
-          <router-link to="/articles" class="nav-link" @click="mobileMenuOpen = false">文章</router-link>
+          <router-link
+            to="/"
+            class="nav-link"
+            :class="{ active: route.name === 'Home' }"
+            @click="mobileMenuOpen = false"
+          >
+            首页
+          </router-link>
+          <router-link
+            to="/articles"
+            class="nav-link"
+            :class="{ active: ['Articles', 'ArticleDetail'].includes(route.name) }"
+            @click="mobileMenuOpen = false"
+          >
+            文章
+          </router-link>
 
           <!-- 笔记下拉菜单 -->
           <el-dropdown @command="handleNoteCommand" class="notes-dropdown">
-            <span class="nav-link notes-link">
+            <span class="nav-link notes-link" :class="{ active: route.name === 'Notes' }">
               笔记
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
@@ -41,10 +55,10 @@
             </template>
           </el-dropdown>
 
-          <router-link to="/archive" class="nav-link" @click="mobileMenuOpen = false">归档</router-link>
-          <router-link to="/guestbook" class="nav-link" @click="mobileMenuOpen = false">留言板</router-link>
-          <router-link to="/stats" class="nav-link" @click="mobileMenuOpen = false">统计</router-link>
-          <router-link to="/about" class="nav-link" @click="mobileMenuOpen = false">关于</router-link>
+          <router-link to="/archive" class="nav-link" :class="{ active: route.name === 'Archive' }" @click="mobileMenuOpen = false">归档</router-link>
+          <router-link to="/guestbook" class="nav-link" :class="{ active: route.name === 'Guestbook' }" @click="mobileMenuOpen = false">留言板</router-link>
+          <router-link to="/stats" class="nav-link" :class="{ active: route.name === 'Stats' }" @click="mobileMenuOpen = false">统计</router-link>
+          <router-link to="/about" class="nav-link" :class="{ active: route.name === 'About' }" @click="mobileMenuOpen = false">关于</router-link>
         </nav>
 
         <div class="header-actions">
@@ -96,13 +110,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getTags } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const searchKeyword = ref('')
 const tags = ref([])
@@ -168,8 +183,10 @@ const handleCommand = (command) => {
 
 <style scoped>
 .header {
-  background-color: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(228, 231, 236, 0.9);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -179,56 +196,61 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  min-height: var(--leaf-header-height);
+  padding: 0;
+  gap: 24px;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 24px; /* 从20px增加到24px */
-  font-weight: 600;
-  color: #409eff;
+  min-width: 150px;
+  font-size: 20px;
+  font-weight: 750;
+  color: var(--leaf-heading);
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: color 0.2s ease;
 }
 
 .logo:hover {
-  opacity: 0.8;
+  color: var(--leaf-primary);
+}
+
+.logo .el-icon {
+  color: var(--leaf-primary);
 }
 
 .nav {
   display: flex;
-  gap: 30px;
+  align-items: center;
+  gap: 8px;
   flex: 1;
   justify-content: center;
 }
 
 .nav-link {
-  color: #606266;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 7px;
+  color: var(--leaf-muted);
   text-decoration: none;
-  font-size: 18px; /* 从16px增加到18px */
-  transition: color 0.3s;
+  font-size: 15px;
+  font-weight: 650;
+  transition: color 0.2s ease, background-color 0.2s ease;
   position: relative;
 }
 
 .nav-link:hover {
-  color: #409eff;
+  color: var(--leaf-primary);
+  background: var(--leaf-primary-soft);
 }
 
-.nav-link.router-link-active {
-  color: #409eff;
-  font-weight: 500;
-}
-
-.nav-link.router-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: -16px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #409eff;
+.nav-link.active {
+  color: var(--leaf-primary);
+  background: var(--leaf-primary-soft);
 }
 
 .notes-dropdown {
@@ -241,30 +263,33 @@ const handleCommand = (command) => {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  color: #606266;
-  font-size: 18px; /* 从16px增加到18px */
-  transition: color 0.3s;
-  text-decoration: none;
-  position: relative;
-  line-height: normal;
-}
-
-.notes-link:hover {
-  color: #409eff;
+  line-height: 1;
 }
 
 .notes-link .el-icon {
-  font-size: 14px; /* 从12px增加到14px */
+  font-size: 13px;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 320px;
 }
 
 .search-input {
-  width: 200px;
+  width: 220px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  background: var(--leaf-surface-muted);
+  box-shadow: 0 0 0 1px transparent inset;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--leaf-primary) inset;
 }
 
 .user-info {
@@ -275,18 +300,19 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 4px 8px 4px 4px;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
 }
 
 .user-dropdown:hover {
-  background-color: #f5f7fa;
+  background-color: var(--leaf-surface-muted);
 }
 
 .username {
-  font-size: 16px; /* 从14px增加到16px */
-  color: #606266;
+  font-size: 14px;
+  color: var(--leaf-muted);
+  font-weight: 650;
 }
 
 .mobile-menu-btn {
@@ -295,8 +321,17 @@ const handleCommand = (command) => {
 }
 
 @media (max-width: 968px) {
+  .header-content {
+    gap: 12px;
+  }
+
+  .logo {
+    min-width: auto;
+  }
+
   .header-actions {
     gap: 10px;
+    min-width: auto;
   }
 
   .search-input {
@@ -317,14 +352,18 @@ const handleCommand = (command) => {
   .nav {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 1px);
     left: 0;
     right: 0;
-    background: white;
+    background: rgba(255, 255, 255, 0.98);
     flex-direction: column;
-    padding: 20px;
-    gap: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    align-items: stretch;
+    padding: 12px;
+    gap: 6px;
+    border: 1px solid var(--leaf-border);
+    border-top: 0;
+    border-radius: 0 0 var(--leaf-radius) var(--leaf-radius);
+    box-shadow: var(--leaf-shadow-lg);
     z-index: 999;
   }
 
@@ -333,12 +372,9 @@ const handleCommand = (command) => {
   }
 
   .nav-link {
-    padding: 8px 0;
-    font-size: 16px;
-  }
-
-  .nav-link.router-link-active::after {
-    display: none;
+    justify-content: flex-start;
+    padding: 8px 12px;
+    font-size: 15px;
   }
 
   .header-content {
@@ -354,7 +390,7 @@ const handleCommand = (command) => {
   }
 
   .search-input {
-    width: 100px;
+    width: 120px;
   }
 
   .search-input :deep(.el-input__inner) {
@@ -372,8 +408,12 @@ const handleCommand = (command) => {
 }
 
 @media (max-width: 480px) {
+  .header-content {
+    min-height: 64px;
+  }
+
   .search-input {
-    width: 80px;
+    display: none;
   }
 
   .logo span {

@@ -471,7 +471,7 @@ const handleChangePassword = async () => {
 
 <style scoped>
 .profile {
-  padding: 20px 0;
+  padding: 12px 0 0;
 }
 
 .profile-content {
@@ -484,6 +484,8 @@ const handleChangePassword = async () => {
   height: fit-content;
   position: sticky;
   top: 80px;
+  border-color: var(--leaf-border);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .user-info {
@@ -501,7 +503,7 @@ const handleChangePassword = async () => {
 .username {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--leaf-heading);
   margin: 0 0 8px;
 }
 
@@ -523,17 +525,19 @@ const handleChangePassword = async () => {
 .stat-number {
   font-size: 28px;
   font-weight: 700;
-  color: #409eff;
+  color: var(--leaf-primary);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--leaf-muted);
 }
 
 .content-card {
   min-height: 600px;
+  border-color: var(--leaf-border);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .tab-content {
@@ -573,17 +577,17 @@ const handleChangePassword = async () => {
 }
 
 .avatar-preview:hover {
-  border-color: #409eff;
+  border-color: var(--leaf-primary);
 }
 
 .avatar-upload-text {
   font-size: 12px;
-  color: #909399;
+  color: var(--leaf-subtle);
 }
 
 .form-tip {
   font-size: 12px;
-  color: #909399;
+  color: var(--leaf-subtle);
   margin-top: 4px;
 }
 </style>

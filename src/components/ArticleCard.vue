@@ -1,8 +1,11 @@
 <template>
-  <el-card class="article-card" shadow="hover" @click="handleClick">
+  <el-card class="article-card" shadow="never" :body-style="{ padding: '0' }" @click="handleClick">
     <div class="card-wrapper">
       <div v-if="article.cover" class="cover">
         <img :src="article.cover" :alt="article.title" />
+      </div>
+      <div v-else class="cover cover-placeholder">
+        <el-icon><Document /></el-icon>
       </div>
 
       <div class="content">
@@ -83,6 +86,14 @@ const formatDate = (date) => {
   return dayjs(date).format('YYYY-MM-DD')
 }
 
+const decodeHtml = (value) => {
+  if (!value || typeof document === 'undefined') return value
+
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = value
+  return textarea.value
+}
+
 const getSummary = () => {
   let text = ''
 
@@ -95,14 +106,17 @@ const getSummary = () => {
   }
 
   if (text.trim()) {
+    text = decodeHtml(text)
+
     // 移除所有HTML标签
     let plainText = text.replace(/<[^>]+>/g, '')
 
     // 移除 markdown 标记
     plainText = plainText
-      .replace(/[#*`>\[\]()]/g, '')     // 移除常见 markdown 符号
       .replace(/!\[.*?\]\(.*?\)/g, '')  // 移除图片链接
       .replace(/\[.*?\]\(.*?\)/g, '')   // 移除普通链接
+      .replace(/[#*`>\[\]()]/g, '')     // 移除常见 markdown 符号
+      .replace(/&nbsp;/g, ' ')
       .replace(/\s+/g, ' ')             // 将多个空白字符替换为单个空格
       .trim()
 
@@ -119,27 +133,37 @@ const getSummary = () => {
 <style scoped>
 .article-card {
   cursor: pointer;
-  transition: transform 0.3s;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-color: var(--leaf-border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .article-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: var(--leaf-shadow-md);
 }
 
 .card-wrapper {
   display: flex;
-  gap: 20px;
-  min-height: 100%;
+  min-height: 220px;
 }
 
 .cover {
   flex-shrink: 0;
-  width: 280px;
-  height: 100%;
+  width: 250px;
+  min-height: 220px;
   overflow: hidden;
-  border-radius: 8px;
-  align-self: stretch;
+  background: #eef2f6;
+}
+
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--leaf-primary);
+  font-size: 46px;
 }
 
 .cover img {
@@ -150,7 +174,7 @@ const getSummary = () => {
 }
 
 .article-card:hover .cover img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .content {
@@ -159,30 +183,36 @@ const getSummary = () => {
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
+  padding: 22px 24px;
 }
 
 .title {
-  font-size: 28px; /* 从24px增加到28px */
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 12px;
+  margin: 0 0 10px;
+  color: var(--leaf-heading);
+  font-size: 23px;
+  font-weight: 750;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  line-height: 1.4;
+  line-height: 1.35;
+  transition: color 0.2s ease;
+}
+
+.article-card:hover .title {
+  color: var(--leaf-primary);
 }
 
 .summary {
-  font-size: 16px; /* 从14px增加到16px */
-  color: #606266;
-  line-height: 1.8;
-  margin-bottom: 16px;
+  margin: 0 0 18px;
+  color: var(--leaf-muted);
+  font-size: 15px;
+  line-height: 1.75;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
@@ -190,9 +220,11 @@ const getSummary = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  gap: 14px;
+  margin-top: auto;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--leaf-border);
 }
 
 .tags {
@@ -203,15 +235,17 @@ const getSummary = () => {
 
 .stats {
   display: flex;
-  gap: 16px;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 16px; /* 从14px增加到16px */
-  color: #909399;
+  color: var(--leaf-subtle);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .footer {
@@ -224,32 +258,45 @@ const getSummary = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px; /* 从14px增加到16px */
-  color: #606266;
+  color: var(--leaf-muted);
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .date {
-  font-size: 16px; /* 从14px增加到16px */
-  color: #909399;
+  color: var(--leaf-subtle);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 /* 响应式布局 */
 @media (max-width: 768px) {
   .card-wrapper {
     flex-direction: column;
+    min-height: auto;
   }
 
   .cover {
     width: 100%;
-    height: 200px;
+    min-height: 190px;
+    height: 190px;
+  }
+
+  .content {
+    padding: 18px;
   }
 
   .title {
-    font-size: 24px; /* 响应式：从20px增加到24px */
+    font-size: 20px;
   }
 
   .summary {
     -webkit-line-clamp: 3;
+  }
+
+  .meta {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>

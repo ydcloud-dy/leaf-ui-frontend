@@ -1,13 +1,52 @@
 <template>
   <div class="home">
-    <div class="banner">
-      <div class="container">
-        <h1 class="banner-title">欢迎来到我的博客</h1>
-        <p class="banner-subtitle">分享技术，记录生活</p>
-      </div>
-    </div>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <p class="hero-kicker">Leaf Blog</p>
+          <h1 class="hero-title">沉淀技术实践，记录系统成长</h1>
+          <p class="hero-subtitle">
+            聚焦 Go、云原生、工程效率和线上问题复盘，把踩过的坑整理成可复用的经验。
+          </p>
+          <div class="hero-actions">
+            <el-button type="primary" size="large" @click="router.push('/articles')">
+              阅读文章
+            </el-button>
+            <el-button size="large" @click="router.push('/notes')">
+              查看笔记
+            </el-button>
+          </div>
+        </div>
 
-    <div class="container">
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value">{{ formatNumber(stats.articles || 0) }}</span>
+            <span class="hero-stat-label">文章</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">{{ formatNumber(stats.views || 0) }}</span>
+            <span class="hero-stat-label">访问</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">{{ formatNumber(stats.comments || 0) }}</span>
+            <span class="hero-stat-label">评论</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container home-main">
+      <div class="section-heading">
+        <div>
+          <h2>精选文章</h2>
+          <p>按热度整理近期值得阅读的内容</p>
+        </div>
+        <el-button text type="primary" @click="router.push('/articles')">
+          查看全部
+          <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+        </el-button>
+      </div>
+
       <div class="content-wrapper">
         <!-- 文章列表 -->
         <div class="articles-section">
@@ -36,13 +75,11 @@
         <!-- 侧边栏 -->
         <aside class="sidebar">
           <!-- 热门文章 -->
-          <el-card class="sidebar-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <el-icon><TrendCharts /></el-icon>
-                <span>热门文章</span>
-              </div>
-            </template>
+          <section class="sidebar-panel">
+            <div class="card-header">
+              <el-icon><TrendCharts /></el-icon>
+              <span>热门文章</span>
+            </div>
             <div class="hot-articles">
               <div
                 v-for="(article, index) in hotArticles"
@@ -53,17 +90,16 @@
                 <span class="rank" :class="{ top: index < 3 }">{{ index + 1 }}</span>
                 <span class="title">{{ article.title }}</span>
               </div>
+              <el-empty v-if="!hotArticles.length" description="暂无热门文章" :image-size="64" />
             </div>
-          </el-card>
+          </section>
 
           <!-- 标签云 -->
-          <el-card class="sidebar-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <el-icon><CollectionTag /></el-icon>
-                <span>标签云</span>
-              </div>
-            </template>
+          <section class="sidebar-panel">
+            <div class="card-header">
+              <el-icon><CollectionTag /></el-icon>
+              <span>标签云</span>
+            </div>
             <div class="tags-cloud">
               <el-tag
                 v-for="tag in tags"
@@ -73,32 +109,34 @@
               >
                 {{ tag }}
               </el-tag>
+              <el-empty v-if="!tags.length" description="暂无标签" :image-size="64" />
             </div>
-          </el-card>
+          </section>
 
           <!-- 站点统计 -->
-          <el-card class="sidebar-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <el-icon><DataAnalysis /></el-icon>
-                <span>站点统计</span>
-              </div>
-            </template>
+          <section class="sidebar-panel">
+            <div class="card-header">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>站点统计</span>
+            </div>
             <div class="stats">
               <div class="stat-item">
                 <el-icon><Document /></el-icon>
-                <span>文章数：{{ stats.articles || 0 }}</span>
+                <span>文章数</span>
+                <strong>{{ formatNumber(stats.articles || 0) }}</strong>
               </div>
               <div class="stat-item">
                 <el-icon><View /></el-icon>
-                <span>访问量：{{ stats.views || 0 }}</span>
+                <span>访问量</span>
+                <strong>{{ formatNumber(stats.views || 0) }}</strong>
               </div>
               <div class="stat-item">
                 <el-icon><ChatDotRound /></el-icon>
-                <span>评论数：{{ stats.comments || 0 }}</span>
+                <span>评论数</span>
+                <strong>{{ formatNumber(stats.comments || 0) }}</strong>
               </div>
             </div>
-          </el-card>
+          </section>
         </aside>
       </div>
     </div>
@@ -200,42 +238,130 @@ const handleTagClick = (tag) => {
     query: { tag }
   })
 }
+
+const formatNumber = (num) => {
+  const value = Number(num) || 0
+  if (value >= 10000) return `${(value / 10000).toFixed(1)}w`
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+  return value.toString()
+}
 </script>
 
 <style scoped>
-.banner {
+.hero {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
   background:
-    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    linear-gradient(90deg, rgba(13, 23, 42, 0.82) 0%, rgba(13, 23, 42, 0.62) 48%, rgba(13, 23, 42, 0.25) 100%),
     url('../../img/wukong.png');
   background-size: cover;
-  height: 500px;
   background-position: center;
-  background-attachment: fixed;
+}
+
+.hero-inner {
+  min-height: 430px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 56px;
+  padding: 64px 0;
+}
+
+.hero-content {
+  max-width: 650px;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.hero-title {
+  margin: 0;
   color: #fff;
-  padding: 80px 0;
-  margin-bottom: 40px;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1.14;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.28);
 }
 
-.banner-title {
-  font-size: 48px;
-  font-weight: 700;
-  margin-top: 100px;
-  margin-bottom: 16px;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+.hero-subtitle {
+  max-width: 560px;
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 17px;
+  line-height: 1.8;
 }
 
-.banner-subtitle {
-  font-size: 20px;
-  text-align: center;
-  opacity: 0.95;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.hero-actions :deep(.el-button:not(.el-button--primary)) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.hero-actions :deep(.el-button:not(.el-button--primary):hover) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.hero-stats {
+  width: 270px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--leaf-radius);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.hero-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-stat:last-child {
+  border-bottom: 0;
+}
+
+.hero-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.home-main {
+  padding-top: 42px;
 }
 
 .content-wrapper {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 30px;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 28px;
+  align-items: start;
 }
 
 .articles-section {
@@ -245,45 +371,58 @@ const handleTagClick = (tag) => {
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
+  margin-top: 34px;
 }
 
 .sidebar {
   position: sticky;
-  top: 80px;
+  top: calc(var(--leaf-header-height) + 20px);
   height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.sidebar-card {
-  margin-bottom: 20px;
+.sidebar-panel {
+  padding: 18px;
+  background: var(--leaf-surface);
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  box-shadow: var(--leaf-shadow-sm);
 }
 
 .card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
-  color: #303133;
+  margin-bottom: 16px;
+  color: var(--leaf-heading);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.card-header .el-icon {
+  color: var(--leaf-primary);
 }
 
 .hot-articles {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .hot-article-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 9px 8px;
+  border-radius: 7px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s ease;
 }
 
 .hot-article-item:hover {
-  background-color: #f5f7fa;
+  background-color: var(--leaf-surface-muted);
 }
 
 .rank {
@@ -292,23 +431,23 @@ const handleTagClick = (tag) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e4e7ed;
-  color: #606266;
+  background-color: #eef2f6;
+  color: var(--leaf-muted);
   border-radius: 50%;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 750;
   flex-shrink: 0;
 }
 
 .rank.top {
-  background-color: #f56c6c;
+  background-color: var(--leaf-amber);
   color: #fff;
 }
 
 .hot-article-item .title {
   flex: 1;
   font-size: 14px;
-  color: #606266;
+  color: var(--leaf-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -322,11 +461,12 @@ const handleTagClick = (tag) => {
 
 .tag-item {
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .tag-item:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  border-color: var(--leaf-primary);
 }
 
 .stats {
@@ -336,11 +476,21 @@ const handleTagClick = (tag) => {
 }
 
 .stat-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
   align-items: center;
   gap: 8px;
-  color: #606266;
+  color: var(--leaf-muted);
   font-size: 14px;
+}
+
+.stat-item .el-icon {
+  color: var(--leaf-primary);
+}
+
+.stat-item strong {
+  color: var(--leaf-heading);
+  font-weight: 750;
 }
 
 @media (max-width: 968px) {
@@ -352,37 +502,39 @@ const handleTagClick = (tag) => {
     position: static;
   }
 
-  .banner {
-    height: 300px;
-    padding: 40px 0;
-    background-attachment: scroll;
+  .hero-inner {
+    min-height: 390px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 26px;
+    padding: 48px 0;
   }
 
-  .banner-title {
-    font-size: 32px;
-    margin-top: 40px;
+  .hero-title {
+    font-size: 38px;
   }
 
-  .banner-subtitle {
-    font-size: 16px;
+  .hero-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-right: 1px solid rgba(255, 255, 255, 0.16);
+    border-bottom: 0;
+  }
+
+  .hero-stat:last-child {
+    border-right: 0;
   }
 }
 
 @media (max-width: 768px) {
-  .banner {
-    height: 250px;
-    padding: 30px 0;
-  }
-
-  .banner-title {
-    font-size: 28px;
-    margin-top: 30px;
-  }
-
-  .banner-subtitle {
-    font-size: 14px;
-  }
-
   .pagination :deep(.el-pagination) {
     flex-wrap: wrap;
     justify-content: center;
@@ -394,19 +546,33 @@ const handleTagClick = (tag) => {
   }
 }
 
-@media (max-width: 480px) {
-  .banner {
-    height: 200px;
-    padding: 20px 0;
+@media (max-width: 560px) {
+  .hero-inner {
+    min-height: 380px;
   }
 
-  .banner-title {
-    font-size: 24px;
-    margin-top: 20px;
+  .hero-title {
+    font-size: 32px;
   }
 
-  .banner-subtitle {
-    font-size: 13px;
+  .hero-subtitle {
+    font-size: 15px;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    padding: 12px 10px;
+  }
+
+  .hero-stat-value {
+    font-size: 22px;
+  }
+
+  .home-main {
+    padding-top: 30px;
   }
 }
 </style>
