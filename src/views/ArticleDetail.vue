@@ -1438,7 +1438,7 @@ const formatDate = (date) => {
 
 .detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 28px;
   align-items: start;
 }
@@ -1748,13 +1748,23 @@ const formatDate = (date) => {
 }
 
 .toc-sidebar {
-  width: auto;
+  position: fixed;
+  top: calc(var(--leaf-header-height) + 22px);
+  right: max(20px, calc((100vw - var(--leaf-container)) / 2));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 280px;
+  max-height: calc(100vh - var(--leaf-header-height) - 44px);
 }
 
 .toc-wrapper {
-  position: sticky;
-  top: calc(var(--leaf-header-height) + 20px);
-  max-height: calc(100vh - var(--leaf-header-height) - 40px);
+  position: static;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
   padding: 18px;
   border: 1px solid var(--leaf-border);
   border-radius: var(--leaf-radius);
@@ -1763,9 +1773,9 @@ const formatDate = (date) => {
 }
 
 .reader-tools {
-  position: sticky;
-  top: calc(var(--leaf-header-height) + 270px);
-  margin-top: 16px;
+  position: static;
+  flex: 0 0 auto;
+  margin-top: 0;
   padding: 16px;
   border: 1px solid var(--leaf-border);
   border-radius: var(--leaf-radius);
