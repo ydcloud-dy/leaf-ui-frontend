@@ -11,6 +11,10 @@
       <div class="content">
         <h3 class="title" v-html="highlightText(article.title)"></h3>
 
+        <div v-if="keyword && article.matched_field" class="search-source">
+          命中{{ article.matched_field }}
+        </div>
+
         <p class="summary" v-html="highlightText(getSummary())"></p>
 
         <div class="meta">
@@ -121,6 +125,10 @@ const highlightText = (value) => {
 
 const getSummary = () => {
   let text = ''
+
+  if (props.keyword && props.article.search_snippet) {
+    return props.article.search_snippet
+  }
 
   // 优先使用 summary 字段
   if (props.article.summary && props.article.summary.trim()) {
@@ -255,15 +263,27 @@ const getSummary = () => {
   -webkit-box-orient: vertical;
 }
 
+.search-source {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 2px 7px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 999px;
+  background: var(--leaf-primary-soft);
+  color: var(--leaf-primary);
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 14px;
   margin-top: auto;
-  margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--leaf-border);
+  margin-bottom: 10px;
 }
 
 .tags {

@@ -130,6 +130,34 @@
             </div>
           </div>
 
+          <section v-if="relatedArticles.length" class="related-section">
+            <div class="related-heading">
+              <div>
+                <h2>相关文章</h2>
+                <p>根据当前文章的标签、分类和热度推荐</p>
+              </div>
+              <el-button text type="primary" @click="router.push('/articles')">
+                更多文章
+                <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+            <div class="related-grid">
+              <article
+                v-for="item in relatedArticles"
+                :key="item.id"
+                class="related-card"
+                @click="navigateToArticle(item.id)"
+              >
+                <div class="related-meta">
+                  <span>{{ item.category?.name || '未分类' }}</span>
+                  <span>{{ formatDate(item.created_at) }}</span>
+                </div>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.summary || '暂无简介' }}</p>
+              </article>
+            </div>
+          </section>
+
           <!-- 评论区 -->
           <Comment v-if="article" :article-id="article.id" />
         </div>
@@ -195,8 +223,9 @@
 import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles } from '@/api/article'
+import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles, getRelatedArticles } from '@/api/article'
 import { addRecentArticle } from '@/composables/useRecentArticles'
+import { useTheme } from '@/composables/useTheme'
 import Comment from '@/components/Comment.vue'
 import { ElMessage, ElImageViewer } from 'element-plus'
 import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound, ArrowLeft, ArrowRight, Link } from '@element-plus/icons-vue'
@@ -299,6 +328,7 @@ hljs.registerLanguage('properties', properties)
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const { isDark } = useTheme()
 
 const article = ref(null)
 const loading = ref(false)
@@ -311,6 +341,7 @@ const imageViewerVisible = ref(false)
 const imageViewerList = ref([])
 const currentImageIndex = ref(0)
 const adjacentArticles = ref(null)
+const relatedArticles = ref([])
 const readingProgress = ref(0)
 const readerFontSize = ref(Number(localStorage.getItem('leaf-reader-font-size')) || 17)
 const readerWidth = ref(Number(localStorage.getItem('leaf-reader-width')) || 860)
@@ -525,6 +556,62 @@ const closeImageViewer = () => {
   imageViewerVisible.value = false
 }
 
+const isCodeElement = (element) => {
+  return Boolean(element.closest('pre, code, .hljs, .code-block-wrapper, .line-numbers-wrapper, .code-line'))
+}
+
+const normalizeArticleInlineStyles = () => {
+  nextTick(() => {
+    if (!contentRef.value) return
+
+    const darkMode = document.documentElement.dataset.theme === 'dark' || isDark.value
+    const styledElements = contentRef.value.querySelectorAll('[style], font[color]')
+    const colorProperties = [
+      'color',
+      'background',
+      'background-color',
+      'border-color',
+      'text-shadow',
+      '-webkit-text-fill-color'
+    ]
+
+    styledElements.forEach(element => {
+      if (isCodeElement(element)) return
+
+      if (darkMode) {
+        if (element.dataset.leafOriginalStyle === undefined && element.hasAttribute('style')) {
+          element.dataset.leafOriginalStyle = element.getAttribute('style') || ''
+        }
+        if (element.dataset.leafOriginalColor === undefined && element.hasAttribute('color')) {
+          element.dataset.leafOriginalColor = element.getAttribute('color') || ''
+        }
+
+        colorProperties.forEach(property => element.style.removeProperty(property))
+        element.removeAttribute('color')
+        return
+      }
+
+      if (element.dataset.leafOriginalStyle !== undefined) {
+        if (element.dataset.leafOriginalStyle) {
+          element.setAttribute('style', element.dataset.leafOriginalStyle)
+        } else {
+          element.removeAttribute('style')
+        }
+        delete element.dataset.leafOriginalStyle
+      }
+
+      if (element.dataset.leafOriginalColor !== undefined) {
+        if (element.dataset.leafOriginalColor) {
+          element.setAttribute('color', element.dataset.leafOriginalColor)
+        } else {
+          element.removeAttribute('color')
+        }
+        delete element.dataset.leafOriginalColor
+      }
+    })
+  })
+}
+
 // 提取文章大纲
 const extractTOC = () => {
   if (!contentRef.value) return
@@ -624,12 +711,17 @@ watch(() => route.params.id, (newId) => {
   }
 })
 
+watch(isDark, () => {
+  normalizeArticleInlineStyles()
+})
+
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
 const fetchArticle = async () => {
   loading.value = true
+  relatedArticles.value = []
   try {
     const res = await getArticleDetail(route.params.id)
     article.value = res.data
@@ -642,15 +734,27 @@ const fetchArticle = async () => {
     extractTOC()
     bindCopyEvents()
     bindImageEvents()
+    normalizeArticleInlineStyles()
     updateReadingProgress()
 
     // 获取上一篇和下一篇文章
     fetchAdjacentArticles()
+    fetchRelatedArticles()
   } catch (error) {
     console.error('Failed to fetch article:', error)
     ElMessage.error('文章加载失败')
   } finally {
     loading.value = false
+  }
+}
+
+const fetchRelatedArticles = async () => {
+  try {
+    const { data } = await getRelatedArticles(route.params.id, { limit: 4 })
+    relatedArticles.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Failed to fetch related articles:', error)
+    relatedArticles.value = []
   }
 }
 
@@ -1972,6 +2076,95 @@ const formatDate = (date) => {
   color: var(--leaf-muted);
 }
 
+.related-section {
+  margin: 30px 0;
+  padding: 22px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: var(--leaf-surface);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.related-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.related-heading h2 {
+  margin: 0;
+  color: var(--leaf-heading);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.related-heading p {
+  margin: 5px 0 0;
+  color: var(--leaf-muted);
+  font-size: 13px;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.related-card {
+  min-height: 150px;
+  padding: 16px;
+  border: 1px solid var(--leaf-border);
+  border-radius: 8px;
+  background: var(--leaf-surface-muted);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.related-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.32);
+  background: var(--leaf-primary-soft);
+}
+
+.related-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--leaf-subtle);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.related-card h3 {
+  margin: 0 0 8px;
+  color: var(--leaf-heading);
+  font-size: 16px;
+  font-weight: 780;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.related-card p {
+  margin: 0;
+  color: var(--leaf-muted);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
 @media (max-width: 1200px) {
   .detail-layout {
     grid-template-columns: 1fr;
@@ -2029,6 +2222,14 @@ const formatDate = (date) => {
   .article-navigation {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .related-heading {
+    flex-direction: column;
+  }
+
+  .related-grid {
+    grid-template-columns: 1fr;
   }
 
   .nav-item,
@@ -2129,6 +2330,44 @@ const formatDate = (date) => {
 
 :global(html[data-theme='dark']) .article-content {
   color: var(--leaf-text);
+}
+
+:global(html[data-theme='dark']) .article-content :deep(p),
+:global(html[data-theme='dark']) .article-content :deep(li),
+:global(html[data-theme='dark']) .article-content :deep(td),
+:global(html[data-theme='dark']) .article-content :deep(p span),
+:global(html[data-theme='dark']) .article-content :deep(li span),
+:global(html[data-theme='dark']) .article-content :deep(p em),
+:global(html[data-theme='dark']) .article-content :deep(li em) {
+  color: var(--leaf-text) !important;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(h1),
+:global(html[data-theme='dark']) .article-content :deep(h2),
+:global(html[data-theme='dark']) .article-content :deep(h3),
+:global(html[data-theme='dark']) .article-content :deep(h4),
+:global(html[data-theme='dark']) .article-content :deep(h5),
+:global(html[data-theme='dark']) .article-content :deep(h6),
+:global(html[data-theme='dark']) .article-content :deep(h1 span),
+:global(html[data-theme='dark']) .article-content :deep(h2 span),
+:global(html[data-theme='dark']) .article-content :deep(h3 span),
+:global(html[data-theme='dark']) .article-content :deep(h4 span),
+:global(html[data-theme='dark']) .article-content :deep(h5 span),
+:global(html[data-theme='dark']) .article-content :deep(h6 span),
+:global(html[data-theme='dark']) .article-content :deep(h1 strong),
+:global(html[data-theme='dark']) .article-content :deep(h2 strong),
+:global(html[data-theme='dark']) .article-content :deep(h3 strong),
+:global(html[data-theme='dark']) .article-content :deep(h4 strong),
+:global(html[data-theme='dark']) .article-content :deep(h5 strong),
+:global(html[data-theme='dark']) .article-content :deep(h6 strong),
+:global(html[data-theme='dark']) .article-content :deep(strong),
+:global(html[data-theme='dark']) .article-content :deep(b) {
+  color: var(--leaf-heading) !important;
+}
+
+:global(html[data-theme='dark']) .article-content :deep(ol li::marker),
+:global(html[data-theme='dark']) .article-content :deep(ul li::marker) {
+  color: var(--leaf-muted) !important;
 }
 
 :global(html[data-theme='dark']) .article-content :deep(p code),

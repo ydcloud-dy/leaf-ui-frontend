@@ -92,3 +92,12 @@ export function getAdjacentArticles(id) {
     method: 'get'
   })
 }
+
+// 获取相关文章
+export function getRelatedArticles(id, params) {
+  return request({
+    url: `/blog/articles/${id}/related`,
+    method: 'get',
+    params
+  })
+}
