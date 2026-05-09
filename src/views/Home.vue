@@ -4,10 +4,16 @@
       <div class="container hero-inner">
         <div class="hero-content">
           <p class="hero-kicker">Leaf Blog</p>
-          <h1 class="hero-title">沉淀技术实践，记录系统成长</h1>
-          <p class="hero-subtitle">
-            聚焦 Go、云原生、工程效率和线上问题复盘，把踩过的坑整理成可复用的经验。
-          </p>
+          <Transition name="quote-fade" mode="out-in">
+            <div
+              :key="currentQuoteIndex"
+              class="hero-quote"
+              aria-live="polite"
+            >
+              <h1 class="hero-title">{{ currentQuote.text }}</h1>
+              <p class="hero-subtitle">{{ currentQuote.source }}</p>
+            </div>
+          </Transition>
           <div class="hero-actions">
             <el-button type="primary" size="large" @click="router.push('/articles')">
               阅读文章
@@ -178,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getArticles } from '@/api/article'
 import { getStats, getHotArticles } from '@/api/stats'
@@ -198,6 +204,37 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const loading = ref(false)
+const currentQuoteIndex = ref(0)
+let quoteTimer = null
+
+const heroQuotes = [
+  {
+    text: '纸上得来终觉浅，绝知此事要躬行',
+    source: '陆游《冬夜读书示子聿》'
+  },
+  {
+    text: '知之者不如好之者，好之者不如乐之者',
+    source: '孔子《论语》'
+  },
+  {
+    text: '路漫漫其修远兮，吾将上下而求索',
+    source: '屈原《离骚》'
+  },
+  {
+    text: '天行健，君子以自强不息',
+    source: '《周易》'
+  },
+  {
+    text: '学而不思则罔，思而不学则殆',
+    source: '孔子《论语》'
+  },
+  {
+    text: '博观而约取，厚积而薄发',
+    source: '苏轼《稼说送张琥》'
+  }
+]
+
+const currentQuote = computed(() => heroQuotes[currentQuoteIndex.value])
 
 onMounted(() => {
   fetchArticles()
@@ -205,6 +242,15 @@ onMounted(() => {
   fetchTags()
   fetchStats()
   recentArticles.value = getRecentArticles()
+  quoteTimer = window.setInterval(() => {
+    currentQuoteIndex.value = (currentQuoteIndex.value + 1) % heroQuotes.length
+  }, 4500)
+})
+
+onBeforeUnmount(() => {
+  if (quoteTimer) {
+    window.clearInterval(quoteTimer)
+  }
 })
 
 const fetchArticles = async () => {
@@ -330,6 +376,10 @@ const formatNumber = (num) => {
   max-width: 650px;
 }
 
+.hero-quote {
+  min-height: 150px;
+}
+
 .hero-kicker {
   display: inline-flex;
   align-items: center;
@@ -358,6 +408,21 @@ const formatNumber = (num) => {
   color: rgba(255, 255, 255, 0.84);
   font-size: 17px;
   line-height: 1.8;
+}
+
+.quote-fade-enter-active,
+.quote-fade-leave-active {
+  transition: opacity 0.38s ease, transform 0.38s ease;
+}
+
+.quote-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.quote-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .hero-actions {
@@ -637,6 +702,10 @@ const formatNumber = (num) => {
     font-size: 38px;
   }
 
+  .hero-quote {
+    min-height: 136px;
+  }
+
   .hero-stats {
     width: 100%;
     display: grid;
@@ -675,6 +744,10 @@ const formatNumber = (num) => {
 
   .hero-title {
     font-size: 32px;
+  }
+
+  .hero-quote {
+    min-height: 124px;
   }
 
   .hero-subtitle {
