@@ -134,7 +134,7 @@
             <div class="related-heading">
               <div>
                 <h2>相关文章</h2>
-                <p>根据当前文章的标签、分类和热度推荐</p>
+                <p>根据当前文章的标签、分类和发布时间推荐</p>
               </div>
               <el-button text type="primary" @click="router.push('/articles')">
                 更多文章
@@ -154,6 +154,31 @@
                 </div>
                 <h3>{{ item.title }}</h3>
                 <p>{{ item.summary || '暂无简介' }}</p>
+              </article>
+            </div>
+          </section>
+
+          <section v-if="topicCards.length" class="topic-section">
+            <div class="related-heading">
+              <div>
+                <h2>专题推荐</h2>
+                <p>沿着同一主题继续阅读，把零散文章串成知识路径</p>
+              </div>
+              <el-button text type="primary" @click="router.push('/notes')">
+                技术笔记
+                <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+            <div class="topic-grid">
+              <article
+                v-for="item in topicCards"
+                :key="`${item.type}-${item.name}`"
+                class="topic-card"
+                @click="openTopic(item)"
+              >
+                <span class="topic-type">{{ item.type }}</span>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.description }}</p>
               </article>
             </div>
           </section>
@@ -223,9 +248,10 @@
 import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { getArticleDetail, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles, getRelatedArticles } from '@/api/article'
+import { getArticleDetail, getArticles, likeArticle, unlikeArticle, favoriteArticle, unfavoriteArticle, getAdjacentArticles, getRelatedArticles } from '@/api/article'
 import { addRecentArticle } from '@/composables/useRecentArticles'
 import { useTheme } from '@/composables/useTheme'
+import { setArticleSeo } from '@/composables/useSeo'
 import Comment from '@/components/Comment.vue'
 import { ElMessage, ElImageViewer } from 'element-plus'
 import { Star, StarFilled, Collection, CollectionTag, View, ChatDotRound, ArrowLeft, ArrowRight, Link } from '@element-plus/icons-vue'
@@ -346,6 +372,42 @@ const readingProgress = ref(0)
 const readerFontSize = ref(Number(localStorage.getItem('leaf-reader-font-size')) || 17)
 const readerWidth = ref(Number(localStorage.getItem('leaf-reader-width')) || 860)
 
+const getEntityName = (value) => {
+  if (!value) return ''
+  if (typeof value === 'object') return value.name || value.title || ''
+  return String(value)
+}
+
+const tagNames = computed(() => (article.value?.tags || []).map(getEntityName).filter(Boolean))
+const categoryName = computed(() => getEntityName(article.value?.category))
+
+const topicCards = computed(() => {
+  if (!article.value) return []
+
+  const cards = []
+  if (categoryName.value) {
+    cards.push({
+      type: '分类',
+      name: categoryName.value,
+      title: `${categoryName.value} 专题`,
+      description: `继续阅读 ${categoryName.value} 分类下的相关文章。`,
+      query: { category: categoryName.value }
+    })
+  }
+
+  tagNames.value.slice(0, 4).forEach(tag => {
+    cards.push({
+      type: '标签',
+      name: tag,
+      title: `# ${tag}`,
+      description: `查看 ${tag} 相关的文章和实践记录。`,
+      query: { tag }
+    })
+  })
+
+  return cards.slice(0, 5)
+})
+
 // 生成带行号的代码
 const generateCodeWithLineNumbers = (rawCode, highlighted) => {
   // 去掉首尾空行
@@ -413,14 +475,81 @@ md.renderer.rules.fence = (tokens, idx) => {
   return `${renderCodeBlock(token.content, lang)}\n`
 }
 
+const tableWidthCommentRegex = /^leaf-table-widths:([0-9.,\s]+)$/
+
+const parseTableWidths = (value) =>
+  String(value || '')
+    .split(',')
+    .map(item => Math.round(Number(item.trim())))
+    .filter(item => Number.isFinite(item) && item >= 64)
+
+const findPreviousTable = (node) => {
+  let current = node.previousSibling
+  while (current) {
+    if (current.nodeType === 1 && current.tagName === 'TABLE') return current
+    current = current.previousSibling
+  }
+  return null
+}
+
+const applyTableWidthMetadata = (html) => {
+  if (!html.includes('leaf-table-widths')) return html
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const walker = doc.createTreeWalker(doc.body, 128)
+  const comments = []
+  let comment = walker.nextNode()
+
+  while (comment) {
+    comments.push(comment)
+    comment = walker.nextNode()
+  }
+
+  comments.forEach(node => {
+    const match = node.data.trim().match(tableWidthCommentRegex)
+    if (!match) return
+
+    const widths = parseTableWidths(match[1])
+    const table = findPreviousTable(node)
+    if (!table || !widths.length) {
+      node.remove()
+      return
+    }
+
+    table.querySelector(':scope > colgroup')?.remove()
+    const colgroup = doc.createElement('colgroup')
+    widths.forEach(width => {
+      const col = doc.createElement('col')
+      col.style.width = `${width}px`
+      colgroup.appendChild(col)
+    })
+
+    table.insertBefore(colgroup, table.firstChild)
+    table.classList.add('leaf-sized-table')
+    table.style.tableLayout = 'fixed'
+    table.style.width = `${widths.reduce((sum, width) => sum + width, 0)}px`
+    table.style.maxWidth = 'none'
+    if (!table.parentElement?.classList.contains('leaf-table-scroll')) {
+      const wrapper = doc.createElement('div')
+      wrapper.className = 'leaf-table-scroll'
+      table.parentNode.insertBefore(wrapper, table)
+      wrapper.appendChild(table)
+    }
+    node.remove()
+  })
+
+  return doc.body.innerHTML
+}
+
 const renderedContent = computed(() => {
   // 优先使用 content_markdown 渲染，以便应用代码高亮和复制功能
   if (article.value?.content_markdown) {
-    return md.render(article.value.content_markdown)
+    return applyTableWidthMetadata(md.render(article.value.content_markdown))
   }
   // 如果只有 content_html，需要后处理添加代码块功能
   if (article.value?.content_html) {
-    return processHtmlCodeBlocks(article.value.content_html)
+    return applyTableWidthMetadata(processHtmlCodeBlocks(article.value.content_html))
   }
   return ''
 })
@@ -725,6 +854,7 @@ const fetchArticle = async () => {
   try {
     const res = await getArticleDetail(route.params.id)
     article.value = res.data
+    setArticleSeo(res.data)
     addRecentArticle(res.data)
     isLiked.value = res.data.is_liked || false
     isFavorited.value = res.data.is_favorited || false
@@ -749,11 +879,46 @@ const fetchArticle = async () => {
 }
 
 const fetchRelatedArticles = async () => {
+  const normalizeList = (list = []) =>
+    list
+      .filter(item => item?.id && String(item.id) !== String(route.params.id))
+      .reduce((result, item) => {
+        if (!result.some(existing => existing.id === item.id)) {
+          result.push(item)
+        }
+        return result
+      }, [])
+      .slice(0, 4)
+
   try {
     const { data } = await getRelatedArticles(route.params.id, { limit: 4 })
-    relatedArticles.value = Array.isArray(data) ? data : []
+    const list = normalizeList(Array.isArray(data) ? data : (data?.list || []))
+    if (list.length) {
+      relatedArticles.value = list
+      return
+    }
   } catch (error) {
     console.error('Failed to fetch related articles:', error)
+  }
+
+  try {
+    const params = {
+      page: 1,
+      page_size: 8,
+      status: 1,
+      sort: 'latest'
+    }
+
+    if (tagNames.value[0]) {
+      params.tag = tagNames.value[0]
+    } else if (categoryName.value) {
+      params.category = categoryName.value
+    }
+
+    const { data } = await getArticles(params)
+    relatedArticles.value = normalizeList(data?.list || data || [])
+  } catch (error) {
+    console.error('Failed to fetch fallback related articles:', error)
     relatedArticles.value = []
   }
 }
@@ -776,6 +941,10 @@ const navigateToArticle = (articleId) => {
   if (articleId) {
     router.push(`/articles/${articleId}`)
   }
+}
+
+const openTopic = (item) => {
+  router.push({ name: 'Articles', query: item.query })
 }
 
 const handleLike = async () => {
@@ -1843,6 +2012,27 @@ const formatDate = (date) => {
   border-bottom: 0;
 }
 
+.article-content :deep(.leaf-table-scroll) {
+  margin: 24px 0;
+  overflow-x: auto;
+}
+
+.article-content :deep(.leaf-table-scroll table) {
+  margin: 0;
+}
+
+.article-content :deep(table.leaf-sized-table) {
+  width: max-content;
+  max-width: none;
+}
+
+.article-content :deep(table.leaf-sized-table th),
+.article-content :deep(table.leaf-sized-table td) {
+  min-width: 64px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .article-actions {
   justify-content: center;
   gap: 12px;
@@ -2165,6 +2355,65 @@ const formatDate = (date) => {
   -webkit-box-orient: vertical;
 }
 
+.topic-section {
+  margin: 30px 0;
+  padding: 22px;
+  border: 1px solid var(--leaf-border);
+  border-radius: var(--leaf-radius);
+  background: linear-gradient(180deg, var(--leaf-surface), var(--leaf-surface-muted));
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.topic-card {
+  min-height: 138px;
+  padding: 16px;
+  border: 1px solid var(--leaf-border);
+  border-radius: 8px;
+  background: var(--leaf-surface);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.topic-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.34);
+  box-shadow: var(--leaf-shadow-sm);
+}
+
+.topic-type {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  background: var(--leaf-primary-soft);
+  color: var(--leaf-primary);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.topic-card h3 {
+  margin: 12px 0 8px;
+  color: var(--leaf-heading);
+  font-size: 17px;
+  font-weight: 820;
+  line-height: 1.35;
+}
+
+.topic-card p {
+  margin: 0;
+  color: var(--leaf-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
 @media (max-width: 1200px) {
   .detail-layout {
     grid-template-columns: 1fr;
@@ -2229,6 +2478,10 @@ const formatDate = (date) => {
   }
 
   .related-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topic-grid {
     grid-template-columns: 1fr;
   }
 

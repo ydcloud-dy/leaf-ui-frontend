@@ -1,5 +1,5 @@
 # 构建阶段
-FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/node:18-alpine as builder
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -7,9 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 # 换成国内 npm 源（淘宝镜像）
 RUN npm config set registry https://registry.npmmirror.com
-# 安装依赖
-RUN npm ci --only=production
-RUN npm i
+# 安装依赖。Vite 构建需要 devDependencies，所以这里不能只安装 production 依赖。
+RUN npm ci
 # 复制源代码
 COPY . .
 
@@ -18,9 +17,12 @@ RUN npm run build
 
 # 生产阶段
 FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/nginx:1.25-alpine
-#
-# 复制自定义 nginx 配置
-COPY deploy/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Docker 运行时可以通过 -e API_UPSTREAM=http://xxx:8888 覆盖后端地址。
+ENV API_UPSTREAM=http://localhost:8888
+
+# 复制自定义 nginx 模板，官方 nginx 镜像启动时会自动执行 envsubst。
+COPY deploy/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 
 # 从构建阶段复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html

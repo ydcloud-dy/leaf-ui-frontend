@@ -34,6 +34,13 @@
         </el-tag>
       </div>
 
+      <div v-if="selectedCategory" class="active-category-filter">
+        <span>当前分类：</span>
+        <el-tag closable @close="clearCategoryFilter" type="warning" size="large">
+          {{ selectedCategory }}
+        </el-tag>
+      </div>
+
       <div v-if="searchKeyword" class="active-search-filter">
         <span>搜索关键词：</span>
         <el-tag closable @close="clearSearchFilter" type="primary" size="large">
@@ -111,6 +118,7 @@ const pageSize = ref(10)
 const loading = ref(false)
 const searchKeyword = ref('')
 const selectedTag = ref('')
+const selectedCategory = ref('')
 const sortBy = ref('latest')
 let searchTimer = null
 
@@ -127,12 +135,14 @@ onMounted(() => {
   // 从URL获取查询参数
   searchKeyword.value = route.query.keyword || ''
   selectedTag.value = route.query.tag || ''
+  selectedCategory.value = route.query.category || ''
   fetchArticles()
 })
 
 watch(() => route.query, () => {
   searchKeyword.value = route.query.keyword || ''
   selectedTag.value = route.query.tag || ''
+  selectedCategory.value = route.query.category || ''
   currentPage.value = 1
   fetchArticles()
 })
@@ -153,6 +163,10 @@ const fetchArticles = async () => {
 
     if (selectedTag.value && selectedTag.value.trim()) {
       params.tag = selectedTag.value.trim()
+    }
+
+    if (selectedCategory.value && selectedCategory.value.trim()) {
+      params.category = selectedCategory.value.trim()
     }
 
     // 如果有搜索关键词才使用searchArticles,否则使用getArticles
@@ -203,10 +217,18 @@ const handlePageChange = () => {
 }
 
 const clearTagFilter = () => {
+  const query = { ...route.query }
+  delete query.tag
   router.push({
     name: 'Articles',
-    query: searchKeyword.value ? { keyword: searchKeyword.value } : {}
+    query
   })
+}
+
+const clearCategoryFilter = () => {
+  const query = { ...route.query }
+  delete query.category
+  router.push({ name: 'Articles', query })
 }
 
 const clearSearchFilter = () => {
@@ -259,7 +281,19 @@ const clearSearchFilter = () => {
   box-shadow: var(--leaf-shadow-sm);
 }
 
+.active-category-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--leaf-radius);
+}
+
 .active-tag-filter span,
+.active-category-filter span,
 .active-search-filter span {
   color: var(--leaf-muted);
   font-weight: 650;

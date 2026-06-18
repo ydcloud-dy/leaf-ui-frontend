@@ -9,6 +9,7 @@
       </div>
 
       <div class="content">
+        <div v-if="article.is_pinned" class="pinned-badge">置顶</div>
         <h3 class="title" v-html="highlightText(article.title)"></h3>
 
         <div v-if="keyword && article.matched_field" class="search-source">
@@ -211,12 +212,33 @@ const getSummary = () => {
 }
 
 .content {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
   padding: 22px 24px;
+}
+
+.pinned-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 4px 9px;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  border-radius: 999px;
+  background: rgba(254, 242, 242, 0.92);
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+:global(html[data-theme='dark']) .pinned-badge {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(127, 29, 29, 0.34);
+  color: #fca5a5;
 }
 
 .title {

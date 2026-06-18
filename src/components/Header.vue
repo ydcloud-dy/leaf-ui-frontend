@@ -4,7 +4,7 @@
       <div class="header-content">
         <div class="logo" @click="router.push('/')">
           <el-icon :size="28"><Reading /></el-icon>
-          <span>个人博客</span>
+          <span>{{ siteConfig.name }}</span>
         </div>
 
         <!-- 移动端菜单按钮 -->
@@ -126,6 +126,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getTags } from '@/api/tag'
 import { useTheme } from '@/composables/useTheme'
+import { siteConfig } from '@/config/site'
 import { ElMessage } from 'element-plus'
 import { ArrowDown, Moon, Sunny } from '@element-plus/icons-vue'
 
@@ -225,12 +226,16 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 150px;
-  font-size: 20px;
+  min-width: 220px;
+  font-size: 18px;
   font-weight: 750;
   color: var(--leaf-heading);
   cursor: pointer;
   transition: color 0.2s ease;
+}
+
+.logo span {
+  white-space: nowrap;
 }
 
 .logo:hover {
@@ -363,6 +368,7 @@ const handleCommand = (command) => {
 
   .logo {
     min-width: auto;
+    font-size: 16px;
   }
 
   .header-actions {

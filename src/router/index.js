@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { routeSeo } from '@/config/site'
+import { setSeo } from '@/composables/useSeo'
 
 const routes = [
   {
@@ -11,55 +13,55 @@ const routes = [
         path: '',
         name: 'Home',
         component: () => import('@/views/Home.vue'),
-        meta: { title: '首页' }
+        meta: routeSeo.Home
       },
       {
         path: '/articles',
         name: 'Articles',
         component: () => import('@/views/Articles.vue'),
-        meta: { title: '文章' }
+        meta: routeSeo.Articles
       },
       {
         path: '/articles/:id',
         name: 'ArticleDetail',
         component: () => import('@/views/ArticleDetail.vue'),
-        meta: { title: '文章详情' }
+        meta: { title: '文章详情', description: '阅读运维工程师的技术笔记文章详情。' }
       },
       {
         path: '/archive',
         name: 'Archive',
         component: () => import('@/views/Archive.vue'),
-        meta: { title: '归档' }
+        meta: routeSeo.Archive
       },
       {
         path: '/notes/:tag?',
         name: 'Notes',
         component: () => import('@/views/Notes.vue'),
-        meta: { title: '笔记' }
+        meta: routeSeo.Notes
       },
       {
         path: '/guestbook',
         name: 'Guestbook',
         component: () => import('@/views/Guestbook.vue'),
-        meta: { title: '留言板' }
+        meta: routeSeo.Guestbook
       },
       {
         path: '/about',
         name: 'About',
         component: () => import('@/views/About.vue'),
-        meta: { title: '关于' }
+        meta: routeSeo.About
       },
       {
         path: '/stats',
         name: 'Stats',
         component: () => import('@/views/Stats.vue'),
-        meta: { title: '网站统计' }
+        meta: routeSeo.Stats
       },
       {
         path: '/profile',
         name: 'Profile',
         component: () => import('@/views/Profile.vue'),
-        meta: { title: '个人中心', requiresAuth: true }
+        meta: { ...routeSeo.Profile, requiresAuth: true }
       }
     ]
   },
@@ -67,7 +69,7 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Login.vue'),
-    meta: { title: '登录' }
+    meta: routeSeo.Login
   }
 ]
 
@@ -87,8 +89,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
-  // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - 个人博客` : '个人博客'
+  setSeo({
+    title: to.meta.title,
+    description: to.meta.description,
+    url: to.fullPath
+  })
 
   // 检查是否需要登录
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
